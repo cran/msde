@@ -10,36 +10,37 @@
 #' @param ... additional arguments to \code{Rcpp::sourceCpp} for compiling the C++ code.
 #'@return An \code{sde.model} object, consisting of a list with the following elements:
 #' \describe{
+#' \item{\code{model.ptr}}{Pointer to C++ sde object (\code{sdeCobj}) implementing the member functions: drift/diffusion, data/parameter validators, loglikelihood, prior distribution, forward simulation, MCMC algorithm for Bayesian inference.}
 #' \item{\code{ndims, nparams}}{The number of SDE components and parameters.}
 #' \item{\code{data.names, param.names}}{The names of the SDE components and parameters.}
-#' \item{\code{drift, diff}}{SDE drift and diffusion functions.}
-#' \item{\code{loglik}}{Loglikelihood function.}
-#' \item{\code{logprior}}{SDE prior function.}
-#' \item{\code{sim}}{Function for simulating SDE data.}
-#' \item{\code{post}}{MCMC sampler for the posterior distribution.}
 #' \item{\code{omp}}{A logical flag for whether or not the model was compiled for multicore functionality with \code{OpenMP}.}
 #' }
-#' @details The functions \code{sim}, \code{post}, \code{drift}, \code{diff}, \code{logpior}, and \code{loglik} should never be called directly. Instead use \code{sde.sim}, \code{sde.post} \code{sde.diff}, \code{sde.drift} and \code{sde.loglik}.
-#'
-#' The code is compiled by copying the \code{ModelFile} to the \code{tmpdir} directory, along with a wrapper \code{.cpp} file to be compiled by \code{Rcpp::sourceCpp}.
-#'
-#' One way to crash the R session is by compiling the same model with and without OpenMP, as \code{Rcpp} will overwrite the shared object of one with the other.  For direct speed comparisons between the two versions, make a copy of the \code{sdeModel.h} header file with a different name.
+#' @seealso \code{\link{sde.drift}}, \code{\link{sde.diff}}, \code{\link{sde.valid}}, \code{\link{sde.loglik}}, \code{\link{sde.prior}}, \code{\link{sde.sim}}, \code{\link{sde.post}}.
+#' @importFrom Rcpp sourceCpp
+#' @importFrom methods formalArgs
+#' @importFrom tools md5sum
 #' @examples
-#' \donttest{
-#' hex <- example.models("hest")
-#' sde.make.model(ModelFile = hex$ModelFile,
-#'                param.names = hex$param.names,
-#'                data.names = hex$data.names)
+#' # header (C++) file for Heston's model
+#' hfile <- sde.examples("hest", file.only = TRUE)
+#' cat(readLines(hfile), sep = "\n")
 #'
+#' \donttest{
+#' # compile the model
+#' param.names <- c("alpha", "gamma", "beta", "sigma", "rho")
+#' data.names <- c("X", "Z")
+#' hmod <- sde.make.model(ModelFile = hfile,
+#'                        param.names = param.names,
+#'                        data.names = data.names)
+#'
+#' hmod
 #' }
-#'@export
+#' @export
 sde.make.model <- function(ModelFile, PriorFile = "default",
                            data.names, param.names, hyper.check,
                            OpenMP = FALSE, ...) {
-  sde.model <- list()
   # prior specification
   if(PriorFile == "default") {
-    PriorFile <- file.path(.msde_src_path, "mvnPrior.h")
+    PriorFile <- file.path(.msde_include_path, "mvnPrior.h")
     if(!missing(hyper.check)) {
       warning("Custom hyper.check ignored for default prior.")
     }
@@ -53,28 +54,19 @@ sde.make.model <- function(ModelFile, PriorFile = "default",
       stop("hyper.check must have formal arguments: hyper, param.names, data.names.")
     }
   }
+  # save all sdeObj pointers in the package environment
+  # as sdeObj pointers don't gc properly when R object is overwritten
+  globalptr <- gsub("^.", "", tempfile(pattern = "sdeObj_", tmpdir = ""))
   # compile C++ code
-  rebuild <- .copy.cpp.files(ModelFile, PriorFile)
-  cpp.args <- list(...)
-  if(is.null(cpp.args$rebuild) || !cpp.args$rebuild) {
-    cpp.args$rebuild <- rebuild
-  }
-  cpp.args <- c(list(file = file.path(tempdir(), "msdeExports.cpp"),
-                     env = environment()), cpp.args)
-  # OpenMP support
+  cppFile <- .copy.cpp.files(ModelFile, PriorFile, OpenMP)
   if(OpenMP) old.env <- .omp.set()
-  # if(debug) browser()
-  do.call(sourceCpp, cpp.args)
+  sourceCpp(cppFile, env = .msdeglobalenv, ...)
   if(OpenMP) .omp.unset(env = old.env)
-  environment(sde.model$sim) <- globalenv()
-  environment(sde.model$post) <- globalenv()
-  environment(sde.model$drift) <- globalenv()
-  environment(sde.model$diff) <- globalenv()
-  environment(sde.model$loglik) <- globalenv()
-  environment(sde.model$logprior) <- globalenv()
+  assign(globalptr, .msdeglobalenv$.sde_MakeModel(), envir = .msdeglobalenv)
+  sptr <- .msdeglobalenv[[globalptr]]
   # extract ndims and nparams
-  ndims <- ndims()
-  nparams <- nparams()
+  ndims <- .sde_nDims(sptr)
+  nparams <- .sde_nParams(sptr)
   # parameter and data names
   if(missing(data.names)) data.names <- paste0("X", 1:ndims)
   if(missing(param.names)) param.names <- paste0("theta", 1:nparams)
@@ -84,39 +76,52 @@ sde.make.model <- function(ModelFile, PriorFile = "default",
   if(length(param.names) != nparams) {
     stop("param.names has wrong length.")
   }
-  sde.model <- c(sde.model,
-                 list(ndims = ndims, nparams = nparams,
-                      data.names = data.names, param.names = param.names,
-                      hyper.check = hyper.check, omp = OpenMP))
+  sde.model <- list(ptr = sptr, ndims = ndims, nparams = nparams,
+                    data.names = data.names, param.names = param.names,
+                    hyper.check = hyper.check, omp = OpenMP)
   # output
   class(sde.model) <- "sde.model"
   sde.model
 }
 
-# flags appropriate errors and returns T/F of whether
-# both files have any changes
-.copy.cpp.files <- function(ModelFile, PriorFile) {
-  rebuild <- FALSE
-  # prior
-  fname <- file.path(tempdir(), "sdePrior.h")
-  if(file.exists(fname)) {
-    fold <- readLines(con = fname)
-    fnew <- readLines(con = PriorFile)
-    rebuild <- !identical(fold, fnew)
+#--- keep track of original models ---------------------------------------------
+
+# global variable: md5sum of model/prior pairs, modelID
+.msdeglobalenv <- new.env(parent = globalenv())
+
+# outputs the file "id"
+.cpp.model.id <- function(ModelFile, PriorFile, OpenMP) {
+  mod <- data.frame(id = tempfile(pattern = "msde-"),
+                    sde = md5sum(ModelFile)[1],
+                    prior = md5sum(PriorFile)[1],
+                    omp = OpenMP,
+                    stringsAsFactors = FALSE)
+  models <- .msdeglobalenv$models
+  if(is.null(models)) models <- mod
+  same <- (mod$sde == models$sde)
+  same <- same & (mod$prior == models$prior)
+  same <- same & (mod$omp == models$omp)
+  if(any(same)) {
+    mod$id <- models$id[which(same)[1]]
+  } else {
+    models <- rbind(models, mod)
   }
+  # save environment variable
+  assign(x = "models", value = models, envir = .msdeglobalenv)
+  mod$id
+}
+
+.copy.cpp.files <- function(ModelFile, PriorFile, OpenMP) {
+  # prior file
+  fname <- file.path(tempdir(), "sdePrior.h")
   flag <- file.copy(from = PriorFile,
                     to = fname,
                     overwrite = TRUE, copy.date = TRUE)
   if(!flag) {
     stop("PriorFile \"", PriorFile, "\" not found.")
   }
-  # model
+  # model file
   fname <- file.path(tempdir(), "sdeModel.h")
-  if(file.exists(fname)) {
-    fold <- readLines(con = fname)
-    fnew <- readLines(con = ModelFile)
-    rebuild <- rebuild || !identical(fold, fnew)
-  }
   flag <- file.copy(from = ModelFile,
                     to = fname,
                     overwrite = TRUE, copy.date = TRUE)
@@ -124,17 +129,11 @@ sde.make.model <- function(ModelFile, PriorFile = "default",
     stop("ModelFile \"", ModelFile, "\" not found.")
   }
   # export file
-  if(!file.exists(file.path(.msde_src_path, "msdeExports.cpp"))) {
-    msdeExports <- c(readLines(file.path(.msde_src_path, "sdeUtils.cpp")),
-                     readLines(file.path(.msde_src_path, "sdeSim.cpp")),
-                     readLines(file.path(.msde_src_path, "sdePost.cpp")))
-    cat(msdeExports, sep = "\n",
-        file = file.path(.msde_src_path, "msdeExports.cpp"))
-  }
-  file.copy(from = file.path(.msde_src_path, "msdeExports.cpp"),
-            to = file.path(tempdir(), "msdeExports.cpp"),
+  fname <- paste0(.cpp.model.id(ModelFile, PriorFile, OpenMP), "_Exports.cpp")
+  file.copy(from = file.path(.msde_tools_path, "sdeMakeModel.cpp"),
+            to = fname,
             overwrite = TRUE, copy.date = TRUE)
-  rebuild
+  fname
 }
 
 #--- omp set and unset ---------------------------------------------------------
@@ -164,3 +163,4 @@ sde.make.model <- function(ModelFile, PriorFile = "default",
     Sys.setenv(PKG_LIBS = env$libs)
   }
 }
+

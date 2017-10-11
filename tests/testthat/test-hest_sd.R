@@ -1,12 +1,17 @@
 #--- heston model on sd scale --------------------------------------------------
 
-library(msde)
-context("heston model -- sd scale")
+#library(msde)
+context("heston model -- sd scale (precompiled)")
 
 # setup heston model
-ModelFile <- "hestModel.h"
-param.names <- c("alpha", "gamma", "beta", "sigma", "rho")
-data.names <- c("X", "Z")
+## ModelFile <- "hestModel.h"
+## param.names <- c("alpha", "gamma", "beta", "sigma", "rho")
+## data.names <- c("X", "Z")
+## model <- sde.make.model(ModelFile = ModelFile,
+##                         param.names = param.names,
+##                         data.names = data.names)
+model <- sde.examples(model = "hest")
+
 # heston model drift and diffusion
 drift.fun <- function(x, theta) {
   if(!is.matrix(x)) x <- t(x)
@@ -31,6 +36,7 @@ randt <- function(nreps) {
   if(nreps > 1) Theta <- apply(t(replicate(nreps, Theta)), 2, jitter)
   Theta
 }
+validx <- function(x, theta) x[2] > 0
 
 source("msde-test_debug.R", local = TRUE)
 

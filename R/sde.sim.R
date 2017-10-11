@@ -26,12 +26,8 @@
 #'   \item{\code{nbad}}{The total number of bad draws.}
 #' }
 #' @examples
-#' \donttest{
-#' # compile model
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' # load pre-compiled model
+#' hmod <- sde.examples("hest")
 #'
 #' # initial values
 #' x0 <- c(X = log(1000), Z = 0.1)
@@ -50,7 +46,6 @@
 #'      main = expression(X[t]))
 #' plot(hsim$data[,"Z"], type = "l", xlab = "Time", ylab = "",
 #'      main = expression(Z[t]))
-#' }
 #' @export
 sde.sim <- function(model, x0, theta, dt, dt.sim,
                     nobs, burn = 0, nreps = 1,
@@ -87,22 +82,23 @@ sde.sim <- function(model, x0, theta, dt, dt.sim,
   burn <- floor(burn)
   if(verbose) {
     message("Number of normal draws required: ",
-            round((nobs+burn-1)*rr*nreps, 2))
+            round((nobs+burn)*rr*nreps, 2))
     message("Running simulation...")
   }
 #  if(debug) browser()
   tm <- chrono()
-  ans <- model$sim(nDataOut = as.integer(nobs*ndims*nreps),
-                   N = as.integer(nobs),
-                   burn = as.integer(burn),
-                   reps = as.integer(nreps),
-                   r = as.integer(rr),
-                   dT = as.double(dT),
-                   MAXBAD = as.integer(max.bad.draws),
-                   initData = as.double(x0),
-                   params = as.double(theta),
-                   singleX = as.logical(single.x),
-                   singleTheta = as.logical(single.theta))
+  ans <- .sde_Sim(sdeptr = model$ptr,
+                  nDataOut = as.integer(nobs*ndims*nreps),
+                  N = as.integer(nobs),
+                  burn = as.integer(burn),
+                  reps = as.integer(nreps),
+                  r = as.integer(rr),
+                  dT = as.double(dT),
+                  MAXBAD = as.integer(max.bad.draws),
+                  initData = as.double(x0),
+                  params = as.double(theta),
+                  singleX = as.logical(single.x),
+                  singleTheta = as.logical(single.theta))
   tm <- chrono(tm, display = verbose)
   names(ans) <- c("dataOut", "nBadDraws")
   if(verbose) message("Bad Draws = ", ans$nBadDraws)

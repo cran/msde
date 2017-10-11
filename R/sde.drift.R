@@ -6,12 +6,8 @@
 #' @param theta A vector or matrix of parameters with \code{nparams} columns.
 #' @return A matrix with \code{ndims} columns containing the drift function evaluated at \code{x} and \code{theta}.  If either input contains invalid SDE data or parameters an error is thrown.
 #' @examples
-#' \donttest{
-#' # compile model
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' # load Heston's model
+#' hmod <- sde.examples("hest")
 #'
 #' # single input
 #' x0 <- c(X = log(1000), Z = 0.1)
@@ -23,7 +19,6 @@
 #' Theta <- apply(t(replicate(nreps,theta)),2,jitter)
 #' X0 <- apply(t(replicate(nreps,x0)),2,jitter)
 #' sde.drift(model = hmod, x = X0, theta = Theta)
-#' }
 #' @export
 sde.drift <- function(model, x, theta) {
   if(class(model) != "sde.model") {
@@ -48,10 +43,10 @@ sde.drift <- function(model, x, theta) {
   if(!all(.is.valid.data(model, x, theta, single.x, single.theta, nreps))) {
     stop("x contains invalid sde data.")
   }
-  dr <- model$drift(xIn = as.double(x),
-                    thetaIn = as.double(theta),
-                    singleX = as.logical(single.x),
-                    singleTheta = as.logical(single.theta),
-                    nReps = as.integer(nreps))
+  dr <- .sde_Drift(sdeptr = model$ptr, xIn = as.double(x),
+                   thetaIn = as.double(theta),
+                   singleX = as.logical(single.x),
+                   singleTheta = as.logical(single.theta),
+                   nReps = as.integer(nreps))
   matrix(dr, nrow = nreps, ncol = model$ndims, byrow = TRUE)
 }

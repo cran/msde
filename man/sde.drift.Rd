@@ -20,12 +20,8 @@ A matrix with \code{ndims} columns containing the drift function evaluated at \c
 Computes the SDE model's drift function given data and parameter values.
 }
 \examples{
-\donttest{
-# compile model
-hex <- example.models("hest")
-hmod <- sde.make.model(ModelFile = hex$ModelFile,
-                       param.names = hex$param.names,
-                       data.names = hex$data.names)
+# load Heston's model
+hmod <- sde.examples("hest")
 
 # single input
 x0 <- c(X = log(1000), Z = 0.1)
@@ -37,5 +33,4 @@ nreps <- 10
 Theta <- apply(t(replicate(nreps,theta)),2,jitter)
 X0 <- apply(t(replicate(nreps,x0)),2,jitter)
 sde.drift(model = hmod, x = X0, theta = Theta)
-}
 }

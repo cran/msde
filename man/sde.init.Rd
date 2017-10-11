@@ -32,12 +32,8 @@ An \code{sde.init} object, corresponding to a list with elements:
 Specifies the observed SDE data, interobservation times, initial parameter and missing data values to be supplied to \code{\link{sde.post}}.
 }
 \examples{
-\donttest{
-# compile Heston's model
-hex <- example.models("hest")
-hmod <- sde.make.model(ModelFile = hex$ModelFile,
-                       param.names = hex$param.names,
-                       data.names = hex$data.names)
+# load Heston's model
+hmod <- sde.examples("hest")
 
 # generate some observed data
 nObs <- 5
@@ -58,5 +54,4 @@ sde.init(model = hmod, x = X0, dt = dT, m = 1,
 m <- 3 # divide each observation interval into m equally spaced timepoints
 sde.init(model = hmod, x = X0, dt = dT,
          m = m, nvar.obs = 1, theta = theta)
-}
 }

@@ -6,12 +6,8 @@
 #' @param theta A vector or matrix of parameters with \code{nparams} columns.
 #' @return A matrix with \code{ndims^2} columns containing the diffusion function evaluated at \code{x} and \code{theta}. Each row corresponds to the upper triangular Cholesky factor of the diffusion matrix.  If either input contains invalid SDE data or parameters an error is thrown.
 #' @examples
-#' \donttest{
-#' # compile model
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' # load Heston's model
+#' hmod <- sde.examples("hest")
 #'
 #' # single input
 #' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
@@ -26,7 +22,6 @@
 #'
 #' # mixed inputs
 #' sde.diff(model = hmod, x = x0, theta = Theta)
-#' }
 #' @export
 sde.diff <- function(model, x, theta) {
   if(class(model) != "sde.model") {
@@ -51,11 +46,11 @@ sde.diff <- function(model, x, theta) {
   if(!all(.is.valid.data(model, x, theta, single.x, single.theta, nreps))) {
     stop("x contains invalid sde data.")
   }
-  df <- model$diff(xIn = as.double(x),
-                   thetaIn = as.double(theta),
-                   singleX = as.logical(single.x),
-                   singleTheta = as.logical(single.theta),
-                   nReps = as.integer(nreps))
+  df <- .sde_Diff(sdeptr = model$ptr, xIn = as.double(x),
+                  thetaIn = as.double(theta),
+                  singleX = as.logical(single.x),
+                  singleTheta = as.logical(single.theta),
+                  nReps = as.integer(nreps))
   df <- matrix(df, nrow = nreps, ncol = ndims^2, byrow = TRUE)
   # put zeros into the off-triangular elements
   df[,lower.tri(diag(ndims))] <- 0

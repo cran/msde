@@ -14,13 +14,10 @@
 #'   \item{\code{nvar.obs.m}}{The number of variables observed per row of \code{data}.  Note that \code{nvar.obs.m[(i-1)*m+1] == nvar.obs[ii]}, and that \code{nvar.obs.m[i-1] == 0} if \code{i} is not a multiple of \code{m}.}
 #'   \item{\code{params}}{Parameter initial values.}
 #' }
+#' @importFrom stats approx
 #' @examples
-#' \donttest{
-#' # compile Heston's model
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' # load Heston's model
+#' hmod <- sde.examples("hest")
 #'
 #' # generate some observed data
 #' nObs <- 5
@@ -41,7 +38,6 @@
 #' m <- 3 # divide each observation interval into m equally spaced timepoints
 #' sde.init(model = hmod, x = X0, dt = dT,
 #'          m = m, nvar.obs = 1, theta = theta)
-#' }
 #' @export
 sde.init <- function(model, x, dt, m = 1, nvar.obs, theta) {
   if(class(model) != "sde.model") {

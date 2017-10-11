@@ -17,6 +17,7 @@
 
 // sde model object
 class sdeModel {
+ public:
   static const int nParams = 9; // Gamma = 4, Lambda = 2, Psi = 3
   static const int nDims = 2;
   static const bool sdDiff = true;

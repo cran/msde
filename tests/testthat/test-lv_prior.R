@@ -1,4 +1,4 @@
-library(msde)
+#library(msde)
 
 context("lotka-volterra model -- custom prior")
 

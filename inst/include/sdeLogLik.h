@@ -20,20 +20,18 @@ public members:
 * loglik(x, theta)
 */
 
-//[[Rcpp::depends("msde")]]
-
-#include <LinAlgUtils.h>
-#include <mvnUtils.h>
-#include "sdeModel.h"
-#include <sdeUtils.h>
+#include "LinAlgUtils.h"
+#include "mvnUtils.h"
+#include "sdeUtils.h"
 
 // parallel implementation
 #ifdef _OPENMP
 #include <omp.h>
 #else
-int omp_get_thread_num(void) {return 0;}
+inline int omp_get_thread_num(void) {return 0;}
 #endif
 
+template <class sMod>
 class sdeLogLik {
  protected:
   int nDims2;
@@ -42,7 +40,7 @@ class sdeLogLik {
   //void init(int n); // initialize temporary storage
  public:
   double *propMean, *propSd, *propZ; // for storing normal calculations
-  sdeModel *sde; // for storing drift and diffusion calculations
+  sMod *sde; // for storing drift and diffusion calculations
   int nDims, nParams; // internal representations taken from sdeModel
   int nComp; // number of observations INCLUDING first one
   double *dT, *sqrtDT; // times
@@ -77,14 +75,15 @@ class sdeLogLik {
 /*   } */
 /* } */
 
-inline sdeLogLik::sdeLogLik(int n, double *dt, int ncores) {
+template <class sMod>
+inline sdeLogLik<sMod>::sdeLogLik(int n, double *dt, int ncores) {
   nComp = n;
   nCores = ncores;
-  nDims = sdeModel::nDims;
-  nDims2 = sdeModel::diagDiff ? nDims : nDims*nDims;
-  nParams = sdeModel::nParams;
+  nDims = sMod::nDims;
+  nDims2 = sMod::diagDiff ? nDims : nDims*nDims;
+  nParams = sMod::nParams;
   // create storage space
-  sde = new sdeModel[nCores];
+  sde = new sMod[nCores];
   propMean = new double[nCores*nDims];
   propSd = new double[nCores*nDims2];
   propZ = new double[nComp*nDims]; // RV draws can't be parallelized
@@ -98,7 +97,8 @@ inline sdeLogLik::sdeLogLik(int n, double *dt, int ncores) {
 }
 
 // Destructor
-inline sdeLogLik::~sdeLogLik() {
+template <class sMod>
+inline sdeLogLik<sMod>::~sdeLogLik() {
   delete [] sde;
   delete [] propMean;
   delete [] propSd;
@@ -121,7 +121,8 @@ inline sdeLogLik::~sdeLogLik() {
 /* } */
 
 // full log-likelihood evaluation
-inline double sdeLogLik::loglik(double *theta, double *x) {
+template <class sMod>
+inline double sdeLogLik<sMod>::loglik(double *theta, double *x) {
   double ll = 0;
   // *** PARALLELIZABLE FOR-LOOP ***
   #ifdef _OPENMP
@@ -129,9 +130,9 @@ inline double sdeLogLik::loglik(double *theta, double *x) {
   #endif
   for(int ii = 0; ii < nComp-1; ii++) {
     int iCore = omp_get_thread_num();
-    mvEuler(&propMean[iCore*nDims], &propSd[iCore*nDims2],
+    mvEuler<sMod>(&propMean[iCore*nDims], &propSd[iCore*nDims2],
 	    &x[ii*nDims], dT[ii], sqrtDT[ii], theta, &sde[iCore]);
-    ll += lmvn(&x[(ii+1)*nDims], &propZ[ii*nDims],
+    ll += lmvn<sMod>(&x[(ii+1)*nDims], &propZ[ii*nDims],
     	       &propMean[iCore*nDims], &propSd[iCore*nDims2], nDims);
   }
   return(ll);

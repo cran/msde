@@ -9,7 +9,7 @@ bibliography: references.bib
 csl: taylor-and-francis-harvard-x.csl
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{msde-quicktut}
+  %\VignetteIndexEntry{Example models provided by msde}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -37,10 +37,10 @@ vignette: >
 \newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
 \newcommand{\ind}{\stackrel{\mathrm{ind}}{\sim}}
 \newcommand{\GGam}{\bm{\Gamma}}
-\newcommand{\LLam}{\bm{\lambda}}
+\newcommand{\LLam}{\bm{\Lambda}}
 \newcommand{\PPsi}{\bm{\Psi}}
 
-This vignette contains a complete description of the sample models found in `msde::example.models()`.
+This vignette contains a complete description of the sample models found in `msde::sde.examples`.
 
 ## Heston's stochastic volatility model
 
@@ -51,7 +51,7 @@ $$
 \ud V_t & = -\gamma(V_t - \mu)\ud t + \sigma V_t^{1/2} \ud B_{2t},
 \end{split}
 $$
-where $V_t$ is a latent stochastic volatility process, and $B_{1t}$ and $B_{2t}$ are Brownian motions with $\cor(B_{1t}, B_{2t}) = \rho$.  To improve the accuracy of the numerical discretization scheme used for inference, `msde::example.models` considers the transformed variables $X_t = \log(S_t)$ and $Z_t = 2 V_t^{1/2}$, for which Heston's SDE becomes
+where $V_t$ is a latent stochastic volatility process, and $B_{1t}$ and $B_{2t}$ are Brownian motions with $\cor(B_{1t}, B_{2t}) = \rho$.  To improve the accuracy of the numerical discretization scheme used for inference, the variables are transformed to $X_t = \log(S_t)$ and $Z_t = 2 V_t^{1/2}$, for which Heston's SDE becomes
 $$
 \begin{split}
 \ud X_t & = (\alpha - \tfrac 1 8 Z_t^2)\ud t + \tfrac 1 2 Z_t \ud B_{1t} \\
@@ -62,15 +62,15 @@ with $\cor(B_{1t}, B_{2t}) = \rho$.  Thus the diffusion function on the variance
 $$
 \df_\tth(\Y_t) = \begin{bmatrix} \tfrac 1 4 Z_t^2 & \tfrac \sigma 2 Z_t \\ \tfrac \sigma 2 Z_t & \sigma^2 \end{bmatrix},
 $$
-where $\Y_t = (X_t, Z_t)$ and $\tth = (\alpha, \gamma, \beta, \sigma, \rho)$.  The data and parameter restrictions are $Z_t, \gamma, \sigma > 0$, $|\rho| < 1$, and $\beta > \tfrac 1 2 \sigma^2$, with the final restriction ensuring that $Z_t > 0$ with probability 1.  This model is contained in `msde::example.models(model = "hest")`.
+where $\Y_t = (X_t, Z_t)$ and $\tth = (\alpha, \gamma, \beta, \sigma, \rho)$.  The data and parameter restrictions are $Z_t, \gamma, \sigma > 0$, $|\rho| < 1$, and $\beta > \tfrac 1 2 \sigma^2$, with the final restriction ensuring that $Z_t > 0$ with probability 1.  This model is contained in `sde.examples(model = "hest")`.
 
 ## Bivariate Ornstein-Uhlenbeck process
 
-This model for $\Y_t = (X_{1t}, X_{2t})$ is given by
+This model for $\Y_t = (Y_{1t}, Y_{2t})$ is given by
 $$
 \ud \Y_t = (\GGam \Y_t + \LLam)\ud t + \PPsi \ud \bm{B}_t,
 $$
-where $\GGam$ is a $2\times 2$ matrix, $\LLam$ is a $2 \times 1$ vector, and $\PPsi$ is a $2\times 2$ upper Choleski factor.  The model parameters are thus $\tth = (\Gamma_{11}, \Gamma_{21}, \Gamma_{12}, \Gamma_{22}, \lambda_{1}, \lambda_2, \Psi_{11}, \Psi_{21}, \Psi_{22})$, and the model restrictions are $\Psi_{11}, \Psi_{22} > 0$.  This model is contained in `msde::example.models(model = "biou")`.
+where $\GGam$ is a $2\times 2$ matrix, $\LLam$ is a $2 \times 1$ vector, and $\PPsi$ is a $2\times 2$ upper Choleski factor.  The model parameters are thus $\tth = (\Gamma_{11}, \Gamma_{21}, \Gamma_{12}, \Gamma_{22}, \Lambda_{1}, \Lambda_2, \Psi_{11}, \Psi_{21}, \Psi_{22})$, and the model restrictions are $\Psi_{11}, \Psi_{22} > 0$.  This model is contained in `sde.examples(model = "biou")`.
 
 ## Lotka-Volterra predator-prey model
 
@@ -78,7 +78,7 @@ Let $H_t$ and $L_t$ denote the number of Hare and Lynx at time $t$ coexisting in
 $$
 \begin{bmatrix} \mathrm{d} H_t \\ \mathrm{d} L_t \end{bmatrix} = \begin{bmatrix} \a H_t - \b H_tL_t \\ \b H_tL_t - \g L_t \end{bmatrix}\, \mathrm{d} t + \begin{bmatrix} \a H_t + \b H_tL_t & -\b H_tL_t \\ -\b H_tL_t & \b H_tL_t + \g L_t\end{bmatrix}^{1/2} \begin{bmatrix} \mathrm{d} B_{1t} \\ \mathrm{d} B_{2t} \end{bmatrix}.
 $$
-The data and parameters are all restricted to be positive.  This model is contained in `msde::example.models(model = "lotvol")`.
+The data and parameters are all restricted to be positive.  This model is contained in `sde.examples(model = "lotvol")`.
 
 ## Prokaryotic autoregulatory gene network model
 
@@ -101,6 +101,6 @@ $$
 \end{bmatrix},
 \end{split}
 $$
-where $A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)$ and $\tth = (\rv \theta 8)$, $\theta_i = \log(\gamma_i)$, are various reaction rates.  The data and parameter restrictions for this model are $\tth \in \mathbb R^8$, $\Y_t > 1$, and $D_t < 10$.  This model is contained in `msde::example.models(model = "pgnet")`.
+where $A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)$ and $\tth = (\rv \theta 8)$, $\theta_i = \log(\gamma_i)$, are various reaction rates.  The data and parameter restrictions for this model are $\tth \in \mathbb R^8$, $\Y_t > 1$, and $D_t < 10$.  This model is contained in `sde.examples(model = "pgnet")`.
 
 ## References

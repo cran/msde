@@ -2,16 +2,14 @@
 #define sdePrior_h 1
 
 //[[Rcpp::depends("msde")]]
-
-#include "sdeModel.h"
-
-// this is specific to mvnPrior
 #include <mvnUtils.h>
+//#include "sdeModel.h"
+
 
 class sdePrior {
  private:
-  static const int nDims = sdeModel::nDims;
-  static const int nParams = sdeModel::nParams;
+  //static const int nDims = sdeModel::nDims;
+  //static const int nParams = sdeModel::nParams;
   int nRV, nParamRV, nDataRV; // number of active variables of each type
   int *paramId, *dataId; // index vectors
   double *mean, *cholSd;
@@ -26,9 +24,9 @@ class sdePrior {
 inline sdePrior::sdePrior(double **phi, int nArgs, int *nEachArg) {
   int ii;
   nRV = nEachArg[0];
-  nParamRV = nEachArg[2];
-  nDataRV = nEachArg[3];
   if(nRV > 0) {
+    nParamRV = nEachArg[2];
+    nDataRV = nEachArg[3];
     mean = new double[nRV];
     cholSd = new double[nRV*nRV];
     tmpX = new double[nRV];

@@ -44,8 +44,10 @@ A list with elements:
 \describe{
   \item{\code{params}}{An \code{nsamples x nparams} matrix of posterior parameter draws.}
   \item{\code{data}}{A 3-d array of posterior missing data draws, for which the output dimensions are specified by \code{data.out}.}
-  \item{\code{data.out}}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the \code{data} output.}
   \item{\code{init}}{The \code{sde.init} object which initialized the sampler.}
+  \item{\code{data.out}}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the \code{data} output.}
+  \item{\code{mwg.sd}}{A named vector of Metropolis-within-Gibbs standard devations used at the last posterior iteration.}
+  \item{\code{hyper}}{The hyperparameter specification.}
   \item{\code{loglik}}{If \code{loglik.out == TRUE}, the vector of \code{nsamples} complete data loglikelihoods calculated at each posterior sample.}
   \item{\code{last.iter}}{A list with elements \code{data} and \code{params} giving the last MCMC sample.  Useful for resuming the MCMC from that point.}
   \item{\code{last.miss}}{If \code{last.miss.out == TRUE}, an \code{nsamples x nmissN} matrix of all posterior draws for the missing data in the final observation.  Useful for SDE forecasting at future timepoints.}
@@ -56,9 +58,9 @@ A list with elements:
 A Metropolis-within-Gibbs sampler for the Euler-Maruyama approximation to the true posterior density.
 }
 \details{
-The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length \code{nparams + ndims}, or a named vector containing the elements defined by \code{sde.init$nvar.obs.m[1]} (the missing variables in the first SDE observation) and \code{fixed.params} (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are \code{.25 * |initial_value|}.
+The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length \code{nparams + ndims}, or a named vector containing the elements defined by \code{sde.init$nvar.obs.m[1]} (the missing variables in the first SDE observation) and \code{fixed.params} (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are \code{.25 * |initial_value|} when \code{|initial_value| > 0}, and 1 otherwise.
 
-\code{adapt == TRUE} implements an adaptive MCMC proposal by Rosenthal and Roberts (2005).  At step \eqn{n} of the MCMC, the jump size of each MWG random variable is increased or decreased by \eqn{\delta(n)}, depending on whether the cumulative acceptance rate is above or below the optimal value of 0.44.  If \eqn{\sigma_n} is the size of the jump at step \eqn{n}, then the next jump size is determined by
+\code{adapt == TRUE} implements an adaptive MCMC proposal by Roberts and Rosenthal (2009).  At step \eqn{n} of the MCMC, the jump size of each MWG random variable is increased or decreased by \eqn{\delta(n)}, depending on whether the cumulative acceptance rate is above or below the optimal value of 0.44.  If \eqn{\sigma_n} is the size of the jump at step \eqn{n}, then the next jump size is determined by
 \deqn{
 \log(\sigma_{n+1}) = \log(\sigma_n) \pm \delta(n), \qquad \delta(n) = \min(.01, 1/n^{1/2}).
 }{
@@ -71,10 +73,7 @@ For SDE models with thousands of latent variables, \code{data.out} can be used t
 \examples{
 \donttest{
 # Posterior inference for Heston's model
-hex <- example.models("hest")
-hmod <- sde.make.model(ModelFile = hex$ModelFile,
-                       param.names = hex$param.names,
-                       data.names = hex$data.names)
+hmod <- sde.examples("hest") # load pre-compiled model
 
 # Simulate data
 X0 <- c(X = log(1000), Z = 0.1)
@@ -103,4 +102,7 @@ for(ii in 1:length(hmod$param.names)) {
        main = parse(text = hmod$param.names[ii]), xlab = "")
 }
 }
+}
+\references{
+Roberts, G.O. and Rosenthal, J.S. "Examples of adaptive MCMC." \emph{Journal of Computational and Graphical Statistics} 18.2 (2009): 349-367. \url{http://www.probability.ca/jeff/ftpdir/adaptex.pdf}.
 }

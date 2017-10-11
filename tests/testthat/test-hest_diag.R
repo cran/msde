@@ -1,6 +1,6 @@
 #--- heston model on diag/sd scale ---------------------------------------------
 
-library(msde)
+#library(msde)
 
 context("heston model -- diag/sd scale")
 
@@ -8,6 +8,10 @@ context("heston model -- diag/sd scale")
 ModelFile <- "hestModel_diag.h"
 param.names <- c("alpha", "gamma", "beta", "sigma")
 data.names <- c("X", "Z")
+model <- sde.make.model(ModelFile = ModelFile,
+                        param.names = param.names,
+                        data.names = data.names)
+
 # heston model drift and diffusion
 drift.fun <- function(x, theta) {
   if(!is.matrix(x)) x <- t(x)
@@ -32,6 +36,7 @@ randt <- function(nreps) {
   if(nreps > 1) Theta <- apply(t(replicate(nreps, Theta)), 2, jitter)
   Theta
 }
+validx <- function(x, theta) x[2] > 0
 
 source("msde-test_debug.R", local = TRUE)
 

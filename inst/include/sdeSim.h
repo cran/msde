@@ -1,30 +1,35 @@
+#ifndef sdeSim_h
+#define sdeSim_h
+
 #include <Rcpp.h>
-using namespace Rcpp;
+typedef Rcpp::LogicalVector Logical;
+typedef Rcpp::NumericVector Numeric;
+typedef Rcpp::IntegerVector Integer;
+typedef Rcpp::List List;
+//using namespace Rcpp;
+#include "rngUtils.h"
+#include "sdeUtils.h"
+#include "sdeInterface.h"
 
-//[[Rcpp::depends("msde")]]
-#include <sdeMCMC.h>
-#include <mcmcUtils.h>
-
-// NOTE: doesn't output initial data value to simplify algorithm
-// easier to do this at R level
-//[[Rcpp::export("sde.model$sim")]]
-List sdeEulerSim(int nDataOut,
-		 int N, int burn, int reps, int r, double dT,
-		 int MAXBAD,
-		 NumericVector initData, NumericVector params,
-		 bool singleX, bool singleTheta) {
+template <class sMod, class sPi>
+  inline List sdeRobj<sMod, sPi>::Sim(int nDataOut,
+				      int N, int burn, int reps, int r,
+				      double dT, int MAXBAD,
+				      Numeric initData,
+				      Numeric params,
+				      bool singleX, bool singleTheta) {
   RNGScope scope;
 
-  int nDims = sdeModel::nDims;
-  int nParams = sdeModel::nParams;
+  int nDims = sMod::nDims;
+  int nParams = sMod::nParams;
   double sqrtDT = sqrt(dT);
   int bad = 0;
   // output
-  NumericVector dataOut(nDataOut);
+  Numeric dataOut(nDataOut);
   int nBadDraws;
 
   // storage
-  sdeModel *sde = new sdeModel; // sde model
+  sMod *sde = new sMod; // sde model
   double *mean = new double[nDims]; // mean
   double *sd = new double[nDims*nDims]; // cholesky factor
   double *X = new double[nDims]; // current value
@@ -42,12 +47,12 @@ List sdeEulerSim(int nDataOut,
     // loop through
     for(jj = -burn*r; jj < N*r; jj++) {
       // repeatedly draw from Euler until proposal is valid
-      mvEuler(mean, sd, X, dT, sqrtDT, theta, sde);
+      mvEuler<sMod>(mean, sd, X, dT, sqrtDT, theta, sde);
       do {
 	for(kk = 0; kk < nDims; kk++) {
-	  Z[kk] = norm_rand();
+	  Z[kk] = sdeRNG::rnorm();
 	}
-	xmvn(X, Z, mean, sd, nDims);
+	xmvn<sMod>(X, Z, mean, sd, nDims);
 	// validate draw
       } while(!sde->isValidData(X, theta) && bad++ < MAXBAD);
       if (bad == MAXBAD) {
@@ -74,3 +79,5 @@ List sdeEulerSim(int nDataOut,
 
   return List::create(_["dataOut"] = dataOut, _["nBadDraws"] = nBadDraws);
 }
+
+#endif

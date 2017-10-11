@@ -24,12 +24,8 @@ A vector of loglikelihood evaluations, of the same length as the  third dimensio
 Evaluates the loglikelihood function given SDE data and parameter values.
 }
 \examples{
-\donttest{
-# Compile Heston's model
-hex <- example.models("hest")
-hmod <- sde.make.model(ModelFile = hex$ModelFile,
-                       param.names = hex$param.names,
-                       data.names = hex$data.names)
+# load Heston's model
+hmod <- sde.examples("hest")
 
 # Simulate data
 nreps <- 10
@@ -48,5 +44,4 @@ sde.loglik(model = hmod, x = hsim$data[,,1], dt = dT, theta = theta)
 sde.loglik(model = hmod, x = hsim$data[,,1], dt = dT, theta = Theta)
 # multiple parameters, multiple data
 sde.loglik(model = hmod, x = hsim$data, dt = dT, theta = Theta)
-}
 }

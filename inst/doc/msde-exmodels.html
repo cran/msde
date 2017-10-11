@@ -12,7 +12,7 @@
 
 <meta name="author" content="Martin Lysy, JunYong Tong, Nigel Delaney" />
 
-<meta name="date" content="2017-07-05" />
+<meta name="date" content="2017-10-11" />
 
 <title>Example SDE models provided by msde</title>
 
@@ -32,7 +32,7 @@
 
 <h1 class="title toc-ignore">Example SDE models provided by <strong><code>msde</code></strong></h1>
 <h4 class="author"><em>Martin Lysy, JunYong Tong, Nigel Delaney</em></h4>
-<h4 class="date"><em>2017-07-05</em></h4>
+<h4 class="date"><em>2017-10-11</em></h4>
 
 
 <div id="TOC">
@@ -45,7 +45,7 @@
 </ul>
 </div>
 
-<p>This vignette contains a complete description of the sample models found in <code>msde::example.models()</code>.</p>
+<p>This vignette contains a complete description of the sample models found in <code>msde::sde.examples</code>.</p>
 <div id="hestons-stochastic-volatility-model" class="section level2">
 <h2>Heston’s stochastic volatility model</h2>
 <p>Let <span class="math inline">\(S_t\)</span> denote the value of a financial asset at time <span class="math inline">\(t\)</span>. Heston’s stochastic volatility model <span class="citation">(Heston <a href="#ref-heston93">1993</a>)</span> is given by the pair of stochastic differential equations <span class="math display">\[
@@ -53,26 +53,26 @@
 {\mathrm{d}}S_t &amp; = \alpha S_t{\mathrm{d}}t + V_t^{1/2}S_t{\mathrm{d}}B_{1t} \\
 {\mathrm{d}}V_t &amp; = -\gamma(V_t - \mu){\mathrm{d}}t + \sigma V_t^{1/2} {\mathrm{d}}B_{2t},
 \end{split}
-\]</span> where <span class="math inline">\(V_t\)</span> is a latent stochastic volatility process, and <span class="math inline">\(B_{1t}\)</span> and <span class="math inline">\(B_{2t}\)</span> are Brownian motions with <span class="math inline">\({\mathrm{cor}}(B_{1t}, B_{2t}) = \rho\)</span>. To improve the accuracy of the numerical discretization scheme used for inference, <code>msde::example.models</code> considers the transformed variables <span class="math inline">\(X_t = \log(S_t)\)</span> and <span class="math inline">\(Z_t = 2 V_t^{1/2}\)</span>, for which Heston’s SDE becomes <span class="math display">\[
+\]</span> where <span class="math inline">\(V_t\)</span> is a latent stochastic volatility process, and <span class="math inline">\(B_{1t}\)</span> and <span class="math inline">\(B_{2t}\)</span> are Brownian motions with <span class="math inline">\({\mathrm{cor}}(B_{1t}, B_{2t}) = \rho\)</span>. To improve the accuracy of the numerical discretization scheme used for inference, the variables are transformed to <span class="math inline">\(X_t = \log(S_t)\)</span> and <span class="math inline">\(Z_t = 2 V_t^{1/2}\)</span>, for which Heston’s SDE becomes <span class="math display">\[
 \begin{split}
 {\mathrm{d}}X_t &amp; = (\alpha - \tfrac 1 8 Z_t^2){\mathrm{d}}t + \tfrac 1 2 Z_t {\mathrm{d}}B_{1t} \\
 {\mathrm{d}}Z_t &amp; = (\beta/Z_t - \tfrac \gamma 2 Z_t){\mathrm{d}}t + \sigma {\mathrm{d}}B_{2t},
 \end{split}
 \]</span> with <span class="math inline">\({\mathrm{cor}}(B_{1t}, B_{2t}) = \rho\)</span>. Thus the diffusion function on the variance scale is <span class="math display">\[
 {{\boldsymbol{\Sigma}}}_{{\boldsymbol{\theta}}}({{\boldsymbol{Y}}}_t) = \begin{bmatrix} \tfrac 1 4 Z_t^2 &amp; \tfrac \sigma 2 Z_t \\ \tfrac \sigma 2 Z_t &amp; \sigma^2 \end{bmatrix},
-\]</span> where <span class="math inline">\({{\boldsymbol{Y}}}_t = (X_t, Z_t)\)</span> and <span class="math inline">\({{\boldsymbol{\theta}}}= (\alpha, \gamma, \beta, \sigma, \rho)\)</span>. The data and parameter restrictions are <span class="math inline">\(Z_t, \gamma, \sigma &gt; 0\)</span>, <span class="math inline">\(|\rho| &lt; 1\)</span>, and <span class="math inline">\(\beta &gt; \tfrac 1 2 \sigma^2\)</span>, with the final restriction ensuring that <span class="math inline">\(Z_t &gt; 0\)</span> with probability 1. This model is contained in <code>msde::example.models(model = &quot;hest&quot;)</code>.</p>
+\]</span> where <span class="math inline">\({{\boldsymbol{Y}}}_t = (X_t, Z_t)\)</span> and <span class="math inline">\({{\boldsymbol{\theta}}}= (\alpha, \gamma, \beta, \sigma, \rho)\)</span>. The data and parameter restrictions are <span class="math inline">\(Z_t, \gamma, \sigma &gt; 0\)</span>, <span class="math inline">\(|\rho| &lt; 1\)</span>, and <span class="math inline">\(\beta &gt; \tfrac 1 2 \sigma^2\)</span>, with the final restriction ensuring that <span class="math inline">\(Z_t &gt; 0\)</span> with probability 1. This model is contained in <code>sde.examples(model = &quot;hest&quot;)</code>.</p>
 </div>
 <div id="bivariate-ornstein-uhlenbeck-process" class="section level2">
 <h2>Bivariate Ornstein-Uhlenbeck process</h2>
-<p>This model for <span class="math inline">\({{\boldsymbol{Y}}}_t = (X_{1t}, X_{2t})\)</span> is given by <span class="math display">\[
-{\mathrm{d}}{{\boldsymbol{Y}}}_t = ({{\boldsymbol{\Gamma}}}{{\boldsymbol{Y}}}_t + {{\boldsymbol{\lambda}}}){\mathrm{d}}t + {{\boldsymbol{\Psi}}}{\mathrm{d}}{\boldsymbol{B}}_t,
-\]</span> where <span class="math inline">\({{\boldsymbol{\Gamma}}}\)</span> is a <span class="math inline">\(2\times 2\)</span> matrix, <span class="math inline">\({{\boldsymbol{\lambda}}}\)</span> is a <span class="math inline">\(2 \times 1\)</span> vector, and <span class="math inline">\({{\boldsymbol{\Psi}}}\)</span> is a <span class="math inline">\(2\times 2\)</span> upper Choleski factor. The model parameters are thus <span class="math inline">\({{\boldsymbol{\theta}}}= (\Gamma_{11}, \Gamma_{21}, \Gamma_{12}, \Gamma_{22}, \lambda_{1}, \lambda_2, \Psi_{11}, \Psi_{21}, \Psi_{22})\)</span>, and the model restrictions are <span class="math inline">\(\Psi_{11}, \Psi_{22} &gt; 0\)</span>. This model is contained in <code>msde::example.models(model = &quot;biou&quot;)</code>.</p>
+<p>This model for <span class="math inline">\({{\boldsymbol{Y}}}_t = (Y_{1t}, Y_{2t})\)</span> is given by <span class="math display">\[
+{\mathrm{d}}{{\boldsymbol{Y}}}_t = ({{\boldsymbol{\Gamma}}}{{\boldsymbol{Y}}}_t + {{\boldsymbol{\Lambda}}}){\mathrm{d}}t + {{\boldsymbol{\Psi}}}{\mathrm{d}}{\boldsymbol{B}}_t,
+\]</span> where <span class="math inline">\({{\boldsymbol{\Gamma}}}\)</span> is a <span class="math inline">\(2\times 2\)</span> matrix, <span class="math inline">\({{\boldsymbol{\Lambda}}}\)</span> is a <span class="math inline">\(2 \times 1\)</span> vector, and <span class="math inline">\({{\boldsymbol{\Psi}}}\)</span> is a <span class="math inline">\(2\times 2\)</span> upper Choleski factor. The model parameters are thus <span class="math inline">\({{\boldsymbol{\theta}}}= (\Gamma_{11}, \Gamma_{21}, \Gamma_{12}, \Gamma_{22}, \Lambda_{1}, \Lambda_2, \Psi_{11}, \Psi_{21}, \Psi_{22})\)</span>, and the model restrictions are <span class="math inline">\(\Psi_{11}, \Psi_{22} &gt; 0\)</span>. This model is contained in <code>sde.examples(model = &quot;biou&quot;)</code>.</p>
 </div>
 <div id="lotka-volterra-predator-prey-model" class="section level2">
 <h2>Lotka-Volterra predator-prey model</h2>
 <p>Let <span class="math inline">\(H_t\)</span> and <span class="math inline">\(L_t\)</span> denote the number of Hare and Lynx at time <span class="math inline">\(t\)</span> coexisting in a given habitat. The Lotka-Volterra SDE describing the interactions between these two animal populations is given by <span class="citation">(Golightly and Wilkinson <a href="#ref-golightly-wilkinson10">2010</a>)</span>: <span class="math display">\[
 \begin{bmatrix} \mathrm{d} H_t \\ \mathrm{d} L_t \end{bmatrix} = \begin{bmatrix} {\alpha}H_t - {\beta}H_tL_t \\ {\beta}H_tL_t - {\gamma}L_t \end{bmatrix}\, \mathrm{d} t + \begin{bmatrix} {\alpha}H_t + {\beta}H_tL_t &amp; -{\beta}H_tL_t \\ -{\beta}H_tL_t &amp; {\beta}H_tL_t + {\gamma}L_t\end{bmatrix}^{1/2} \begin{bmatrix} \mathrm{d} B_{1t} \\ \mathrm{d} B_{2t} \end{bmatrix}.
-\]</span> The data and parameters are all restricted to be positive. This model is contained in <code>msde::example.models(model = &quot;lotvol&quot;)</code>.</p>
+\]</span> The data and parameters are all restricted to be positive. This model is contained in <code>sde.examples(model = &quot;lotvol&quot;)</code>.</p>
 </div>
 <div id="prokaryotic-autoregulatory-gene-network-model" class="section level2">
 <h2>Prokaryotic autoregulatory gene network model</h2>
@@ -93,7 +93,7 @@
 0 &amp; 0 &amp; A_t &amp; A_t
 \end{bmatrix},
 \end{split}
-\]</span> where <span class="math inline">\(A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)\)</span> and <span class="math inline">\({{\boldsymbol{\theta}}}= ({\theta_{1},\ldots,\theta_{8}})\)</span>, <span class="math inline">\(\theta_i = \log(\gamma_i)\)</span>, are various reaction rates. The data and parameter restrictions for this model are <span class="math inline">\({{\boldsymbol{\theta}}}\in \mathbb R^8\)</span>, <span class="math inline">\({{\boldsymbol{Y}}}_t &gt; 1\)</span>, and <span class="math inline">\(D_t &lt; 10\)</span>. This model is contained in <code>msde::example.models(model = &quot;pgnet&quot;)</code>.</p>
+\]</span> where <span class="math inline">\(A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)\)</span> and <span class="math inline">\({{\boldsymbol{\theta}}}= ({\theta_{1},\ldots,\theta_{8}})\)</span>, <span class="math inline">\(\theta_i = \log(\gamma_i)\)</span>, are various reaction rates. The data and parameter restrictions for this model are <span class="math inline">\({{\boldsymbol{\theta}}}\in \mathbb R^8\)</span>, <span class="math inline">\({{\boldsymbol{Y}}}_t &gt; 1\)</span>, and <span class="math inline">\(D_t &lt; 10\)</span>. This model is contained in <code>sde.examples(model = &quot;pgnet&quot;)</code>.</p>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2>References</h2>

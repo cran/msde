@@ -1,38 +1,6 @@
 #ifndef LinAlgUtils_h
 #define LinAlgUtils_h
 
-/* // class for proposal mean and variances (or rather sd's) */
-/* // also create a dummy space of size mean. */
-/* class propMV { */
-/* public: */
-/*   int nDims; */
-/*   double *mean, *sd, *z; */
-/*   propMV(int); */
-/*   ~propMV(); */
-/* }; */
-
-/* inline propMV::propMV(int d) { */
-/*   nDims = d; */
-/*   mean = new double[nDims]; */
-/*   sd = new double[nDims*nDims]; */
-/*   z = new double[nDims]; */
-/*   // initialize */
-/*   int ii; */
-/*   for(ii = 0; ii < nDims; ii++) { */
-/*     mean[ii] = 0.0; */
-/*     z[ii] = 0.0; */
-/*   } */
-/*   for(ii = 0; ii < nDims*nDims; ii++) { */
-/*     sd[ii] = 0.0; */
-/*   } */
-/* } */
-
-/* inline propMV::~propMV() { */
-/*   delete [] mean; */
-/*   delete [] sd; */
-/*   delete [] z; */
-/* } */
-
 // multiply vector by scalar a
 inline void v_mult(double *v, double a, int n) {
   for(int ii=0; ii<n; ii++) {

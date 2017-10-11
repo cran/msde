@@ -8,12 +8,8 @@
 #' @param ncores If \code{model} is compiled with \code{OpenMP}, the number of cores to use for parallel processing.  Otherwise, uses \code{ncores = 1} and gives a warning.
 #' @return A vector of loglikelihood evaluations, of the same length as the  third dimension of \code{x} and/or first dimension of \code{theta}.  If input contains invalid data or parameters an error is thrown.
 #' @examples
-#' \donttest{
-#' # Compile Heston's model
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' # load Heston's model
+#' hmod <- sde.examples("hest")
 #'
 #' # Simulate data
 #' nreps <- 10
@@ -32,7 +28,6 @@
 #' sde.loglik(model = hmod, x = hsim$data[,,1], dt = dT, theta = Theta)
 #' # multiple parameters, multiple data
 #' sde.loglik(model = hmod, x = hsim$data, dt = dT, theta = Theta)
-#' }
 #' @export
 sde.loglik <- function(model, x, dt, theta, ncores = 1) {
   if(class(model) != "sde.model") {
@@ -76,11 +71,12 @@ sde.loglik <- function(model, x, dt, theta, ncores = 1) {
     stop("x contains invalid sde data.")
   }
   # compute
-  model$loglik(xIn = as.double(x), dTIn = as.double(dt),
-               thetaIn = as.double(theta),
-               nComp = as.integer(ncomp),
-               nReps = as.integer(nreps),
-               singleX = as.logical(single.x),
-               singleTheta = as.logical(single.theta),
-               nCores = as.integer(ncores))
+  .sde_Loglik(sdeptr = model$ptr,
+              xIn = as.double(x), dTIn = as.double(dt),
+              thetaIn = as.double(theta),
+              nComp = as.integer(ncomp),
+              nReps = as.integer(nreps),
+              singleX = as.logical(single.x),
+              singleTheta = as.logical(single.theta),
+              nCores = as.integer(ncores))
 }

@@ -43,7 +43,7 @@ loglik.fun <- function(x, theta, dt, dr, df) {
 }
 
 # R simulation
-sim.fun <- function(nobs, dt, rr, x0, theta, dr, df) {
+sim.fun <- function(nobs, dt, rr, x0, theta, dr, df, validx) {
   X <- matrix(NA, nobs, length(x0))
   x <- x0
   for(ii in 1:nobs) {
@@ -51,7 +51,7 @@ sim.fun <- function(nobs, dt, rr, x0, theta, dr, df) {
       mu <- x + dr(x, theta) * (dt/rr)
       csd <- df(x, theta) * sqrt(dt/rr)
       x <- rmvn(mu, csd)
-      while(x[2] <= 0) x <- rmvn(mu, csd)
+      while(!validx(x, theta)) x <- rmvn(mu, csd)
     }
     X[ii,] <- x
   }

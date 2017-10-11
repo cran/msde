@@ -7,14 +7,10 @@
 #' @return A logical scalar or vector indicating whether the given data/parameter pair is valid.
 #' @name sde.valid
 #' @examples
-#' \donttest{
 #' # Heston's model
 #' # valid data is: Z > 0
 #' # valid parameters are: gamma, sigma > 0, |rho| < 1, beta > .5 * sigma^2
-#' hex <- example.models("hest")
-#' hmod <- sde.make.model(ModelFile = hex$ModelFile,
-#'                        param.names = hex$param.names,
-#'                        data.names = hex$data.names)
+#' hmod <- sde.examples("hest") # load model
 #'
 #' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
 #'
@@ -33,7 +29,6 @@
 #' # invalid parameters
 #' theta <- c(alpha = 0.1, gamma = -4, beta = 0.8, sigma = 0.6, rho = -0.8)
 #' sde.valid.params(model = hmod, theta = theta)
-#' }
 #' @export
 sde.valid.data <- function(model, x, theta) {
   if(class(model) != "sde.model")
@@ -49,11 +44,11 @@ sde.valid.data <- function(model, x, theta) {
     stop("x and theta have incompatible dimensions.")
   }
   nreps <- max(nreps)
-  model$is.data(xIn = as.double(x),
-                thetaIn = as.double(theta),
-                singleX = as.logical(single.x),
-                singleTheta = as.logical(single.theta),
-                nReps = as.integer(nreps))
+  .sde_isData(sdeptr = model$ptr, xIn = as.double(x),
+              thetaIn = as.double(theta),
+              singleX = as.logical(single.x),
+              singleTheta = as.logical(single.theta),
+              nReps = as.integer(nreps))
 }
 
 #' @rdname sde.valid
@@ -65,23 +60,23 @@ sde.valid.params <- function(model, theta) {
   theta <- .format.params(theta, model$param.names)
   # check singles and compatible x and theta
   nreps <- ncol(theta)
-  model$is.params(thetaIn = as.double(theta),
-                  nReps = as.integer(nreps))
+  .sde_isParams(sdeptr = model$ptr, thetaIn = as.double(theta),
+                nReps = as.integer(nreps))
 }
 
 #--- internal versions: no argument checking/formatting -------------------
 
 .is.valid.data <- function(model, x, theta, single.x, single.theta,
                            nreps) {
-  model$is.data(xIn = as.double(x),
-                thetaIn = as.double(theta),
-                singleX = as.logical(single.x),
-                singleTheta = as.logical(single.theta),
-                nReps = as.integer(nreps))
+  .sde_isData(sdeptr = model$ptr, xIn = as.double(x),
+              thetaIn = as.double(theta),
+              singleX = as.logical(single.x),
+              singleTheta = as.logical(single.theta),
+              nReps = as.integer(nreps))
 }
 
 .is.valid.params <- function(model, theta, single.theta, nreps) {
-  rep(model$is.params(thetaIn = as.double(theta),
-                      nReps = as.integer(ifelse(single.theta, 1, nreps))),
+  rep(.sde_isParams(sdeptr = model$ptr, thetaIn = as.double(theta),
+                    nReps = as.integer(ifelse(single.theta, 1, nreps))),
       times = ifelse(single.theta, nreps, 1))
 }

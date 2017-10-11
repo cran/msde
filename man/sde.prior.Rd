@@ -25,11 +25,7 @@ Evaluates the SDE prior given data, parameter, and hyperparameter values.
 The prior is constructed at the \code{C++} level by defining a function (i.e., public member) \cr \code{double logPrior(double *theta, double *x)} within the \code{sdePrior} class.  At the \code{R} level, the \code{hyper.check} argument of \code{sde.make.model} is a function with arguments \code{hyper}, \code{param.names}, \code{data.names} used to convert \code{hyper} into a list of \code{NULL} or double-vectors which get passed on to the \code{C++} code.  This function can also be used to throw \code{R}-level errors to protect the \code{C++} code from invalid inputs, as is done for the default prior in \code{\link{mvn.hyper.check}}.  For a full example see the "Custom Prior" section in \code{vignette("msde-quicktut")}.
 }
 \examples{
-\donttest{
-hex <- example.models("hest")
-hmod <- sde.make.model(ModelFile = hex$ModelFile,
-                       param.names = hex$param.names,
-                       data.names = hex$data.names)
+hmod <- sde.examples("hest") # load Heston's model
 
 # setting prior for 3 parameters
 rv.names <- c("alpha","gamma","rho")
@@ -48,5 +44,4 @@ Theta <- apply(t(replicate(nreps,theta)),2,jitter)
 X0 <- apply(t(replicate(nreps,x0)),2,jitter)
 
 sde.prior(model = hmod, x = X0, theta = Theta, hyper = hyper)
-}
 }

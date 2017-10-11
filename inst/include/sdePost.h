@@ -1,29 +1,44 @@
+#ifndef sdePost_h
+#define sdePost_h
+
 #include <Rcpp.h>
-using namespace Rcpp;
+//using namespace Rcpp;
+typedef Rcpp::LogicalVector Logical;
+typedef Rcpp::NumericVector Numeric;
+typedef Rcpp::IntegerVector Integer;
+typedef Rcpp::List List;
+//[[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>
+#include <progress_bar.hpp>
+#include "sdeMCMC.h"
+#include "mcmcUtils.h"
+#include "sdeInterface.h"
 
-//[[Rcpp::depends("msde")]]
-#include <sdeMCMC.h>
-#include <mcmcUtils.h>
-
-//[[Rcpp::export("sde.model$post")]]
-List sdeEulerMCMC(NumericVector initParams, NumericVector initData,
-		  NumericVector dT, IntegerVector nDimsPerObs,
-		  LogicalVector fixedParams,
-		  int nSamples, int burn,
-		  int nParamsOut, int nDataOut,
-		  IntegerVector dataOutSmp,
-		  IntegerVector dataOutComp,
-		  IntegerVector dataOutDims,
-		  double updateParams, double updateData,
-		  List priorArgs, List tunePar,
-		  int updateLogLik, int nLogLikOut,
-		  int updateLastMiss, int nLastMissOut, int nCores) {
+template <class sMod, class sPi>
+  inline List sdeRobj<sMod, sPi>::Post(Numeric initParams,
+				       Numeric initData,
+				       Numeric dT,
+				       Integer nDimsPerObs,
+				       Logical fixedParamsIn,
+				       int nSamples, int burn,
+				       int nParamsOut, int nDataOut,
+				       Integer dataOutSmp,
+				       Integer dataOutComp,
+				       Integer dataOutDims,
+				       double updateParams,
+				       double updateData,
+				       List priorArgsIn, List tunePar,
+				       int updateLogLik,
+				       int nLogLikOut,
+				       int updateLastMiss,
+				       int nLastMissOut, int nCores,
+				       bool displayProgress) {
   RNGScope scope;
   int ii, jj, kk;
 
   // problem dimensions
-  int nDims = sdeModel::nDims;
-  int nParams = sdeModel::nParams;
+  int nDims = sMod::nDims;
+  int nParams = sMod::nParams;
   int nComp = initData.length()/nDims;
   int nDimsOut = dataOutDims.length();
   int nCompOut = dataOutComp.length();
@@ -31,52 +46,64 @@ List sdeEulerMCMC(NumericVector initParams, NumericVector initData,
   int nMissN = nDims-nDimsPerObs[nComp-1]; // unobserved states in last observation
 
   // output variables
-  NumericVector paramsOut(nParamsOut);
-  NumericVector dataOut(nDataOut);
-  IntegerVector paramAcceptOut(nParams + nMiss0);
-  IntegerVector gibbsAcceptOut(nComp);
-  NumericVector logLikOut(nLogLikOut);
-  NumericVector lastMissOut(nLastMissOut);
-  NumericVector lastIter(nParams + nComp*nDims);
-  NumericVector mwgSdOut(nParams + nDims);
+  Numeric paramsOut(nParamsOut);
+  Numeric dataOut(nDataOut);
+  Integer paramAcceptOut(nParams + nMiss0);
+  Integer gibbsAcceptOut(nComp);
+  Numeric logLikOut(nLogLikOut);
+  Numeric lastMissOut(nLastMissOut);
+  Numeric lastIter(nParams + nComp*nDims);
+  Numeric mwgSdOut(nParams + nDims);
   // pointers to acceptance rate counters for internal use
   int *paramAccept = INTEGER(paramAcceptOut);
   int *gibbsAccept = INTEGER(gibbsAcceptOut);
   double *mwgSd = REAL(mwgSdOut);
+  // convert LogicalVectors to vector of bools
+  bool *fixedParams = new bool[nParams];
+  bool *tunePar_adapt = new bool[nParams + nDims];
+  convert_Logical(fixedParams, fixedParamsIn);
+  convert_Logical(tunePar_adapt, tunePar["adapt"]);
 
   // MCMC tuning parameters
   for(ii=0; ii<nParams+nDims; ii++) {
     mwgSd[ii] = REAL(tunePar["sd"])[ii];
   }
   mwgAdapt tuneMCMC(REAL(tunePar["max"]), REAL(tunePar["rate"]),
-		    LOGICAL(tunePar["adapt"]), nParams+nDims);
+		    tunePar_adapt, nParams+nDims);
 
   // prior specification
   // hyper parameters: actual prior gets constructed inside MCMC object
-  int nArgs = priorArgs.length();
-  double **phi = new double*[nArgs];
-  int *nEachArg = new int[nArgs];
-  for(ii=0; ii<nArgs; ii++) {
-    if(Rf_isNull(priorArgs[ii])) {
-      nEachArg[ii] = 0;
-    } else {
-      nEachArg[ii] = as<NumericVector>(priorArgs[ii]).length();
-      phi[ii] = REAL(priorArgs[ii]);
-    }
-  }
+  PriorArgs priorArgs(priorArgsIn);
+  /* int nArgs = priorArgs.length(); */
+  /* double **phi = new double*[nArgs]; */
+  /* int *nEachArg = new int[nArgs]; */
+  /* for(ii=0; ii<nArgs; ii++) { */
+  /*   if(Rf_isNull(priorArgs[ii])) { */
+  /*     nEachArg[ii] = 0; */
+  /*   } else { */
+  /*     nEachArg[ii] = as<NumericVector>(priorArgs[ii]).length(); */
+  /*     phi[ii] = REAL(priorArgs[ii]); */
+  /*   } */
+  /* } */
 
   // initialize MCMC
   // prior gets constructed inside of object -- is this really beneficial?
-  sdeMCMC mcmc(nComp, REAL(dT), REAL(initData), REAL(initParams),
-	       INTEGER(nDimsPerObs), LOGICAL(fixedParams),
-	       phi, nArgs, nEachArg, nCores);
+  sdeMCMC<sMod,sPi> mcmc(nComp, REAL(dT), REAL(initData),
+			 REAL(initParams),
+			 INTEGER(nDimsPerObs), fixedParams,
+			 priorArgs.phi, priorArgs.nArgs, priorArgs.nEachArg,
+			 nCores);
+
+  // progress bar
+  Progress Progress_Bar(burn + nSamples, displayProgress);
 
   // main MCMC loop
   jj = 0;
   for(int smp = -burn; smp < nSamples; smp++) {
     // user interrupt
-    if(smp % (int) 1e3) {
+    if(smp % (int) 5e3) {
       Rcpp::checkUserInterrupt();
+      Progress_Bar.increment();
     }
     // missing data update
     if(updateComponent(updateData, smp)) {
@@ -126,8 +153,8 @@ List sdeEulerMCMC(NumericVector initParams, NumericVector initData,
   }
 
   // delete dynamic variables
-  delete [] phi;
-  delete [] nEachArg;
+  delete [] fixedParams;
+  delete [] tunePar_adapt;
 
   return List::create(_["paramsOut"] = paramsOut,
 		      _["dataOut"] = dataOut,
@@ -138,3 +165,5 @@ List sdeEulerMCMC(NumericVector initParams, NumericVector initData,
 		      _["lastIter"] = lastIter,
 		      _["mwgSd"] = mwgSdOut);
 }
+
+#endif

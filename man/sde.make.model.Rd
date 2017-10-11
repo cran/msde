@@ -25,32 +25,31 @@ sde.make.model(ModelFile, PriorFile = "default", data.names, param.names,
 \value{
 An \code{sde.model} object, consisting of a list with the following elements:
 \describe{
+\item{\code{model.ptr}}{Pointer to C++ sde object (\code{sdeCobj}) implementing the member functions: drift/diffusion, data/parameter validators, loglikelihood, prior distribution, forward simulation, MCMC algorithm for Bayesian inference.}
 \item{\code{ndims, nparams}}{The number of SDE components and parameters.}
 \item{\code{data.names, param.names}}{The names of the SDE components and parameters.}
-\item{\code{drift, diff}}{SDE drift and diffusion functions.}
-\item{\code{loglik}}{Loglikelihood function.}
-\item{\code{logprior}}{SDE prior function.}
-\item{\code{sim}}{Function for simulating SDE data.}
-\item{\code{post}}{MCMC sampler for the posterior distribution.}
 \item{\code{omp}}{A logical flag for whether or not the model was compiled for multicore functionality with \code{OpenMP}.}
 }
 }
 \description{
 Compiles the C++ code for various SDE-related algorithms and makes the routines available within R.
 }
-\details{
-The functions \code{sim}, \code{post}, \code{drift}, \code{diff}, \code{logpior}, and \code{loglik} should never be called directly. Instead use \code{sde.sim}, \code{sde.post} \code{sde.diff}, \code{sde.drift} and \code{sde.loglik}.
-
-The code is compiled by copying the \code{ModelFile} to the \code{tmpdir} directory, along with a wrapper \code{.cpp} file to be compiled by \code{Rcpp::sourceCpp}.
-
-One way to crash the R session is by compiling the same model with and without OpenMP, as \code{Rcpp} will overwrite the shared object of one with the other.  For direct speed comparisons between the two versions, make a copy of the \code{sdeModel.h} header file with a different name.
-}
 \examples{
-\donttest{
-hex <- example.models("hest")
-sde.make.model(ModelFile = hex$ModelFile,
-               param.names = hex$param.names,
-               data.names = hex$data.names)
+# header (C++) file for Heston's model
+hfile <- sde.examples("hest", file.only = TRUE)
+cat(readLines(hfile), sep = "\\n")
 
+\donttest{
+# compile the model
+param.names <- c("alpha", "gamma", "beta", "sigma", "rho")
+data.names <- c("X", "Z")
+hmod <- sde.make.model(ModelFile = hfile,
+                       param.names = param.names,
+                       data.names = data.names)
+
+hmod
 }
+}
+\seealso{
+\code{\link{sde.drift}}, \code{\link{sde.diff}}, \code{\link{sde.valid}}, \code{\link{sde.loglik}}, \code{\link{sde.prior}}, \code{\link{sde.sim}}, \code{\link{sde.post}}.
 }

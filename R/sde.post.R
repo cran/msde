@@ -347,9 +347,11 @@ sde.post <- function(model, init, hyper,
   if(update.data && (nmiss0 > 0)) {
     accept <- c(accept,
                 list(miss0 = vnl.accept[nparams+(1:nmiss0)]/nsamples))
-    for(ii in 1:nmiss0) {
-      message(data.names[par.index[1] + ii], "0 accept: ",
-              signif(accept$miss0[ii]*100,3), "%")
+    if(verbose) {
+      for(ii in 1:nmiss0) {
+        message(data.names[par.index[1] + ii], "0 accept: ",
+                signif(accept$miss0[ii]*100,3), "%")
+      }
     }
   }
   accept

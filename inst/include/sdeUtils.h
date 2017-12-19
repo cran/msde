@@ -7,37 +7,74 @@
 #include "mvnUtils.h"
 //#include "sdeModel.h"
 
-// xmvn, zmvn, llmvn
+// --- xmvn, zmvn, llmvn -------------------------------------------------------
+
+// full version
 template <class sMod>
 inline void xmvn(double *x, double *z,
-		 double *mean, double *sd, int n) {
+		 double *mean, double *sd, int iFirst, int iLast) {
   if(sMod::diagDiff) {
-    xmvn_diag(x, z, mean, sd, n);
+    xmvn_diag(x, z, mean, sd, sMod::nDims, iFirst, iLast);
   } else {
-    xmvn_chol(x, z, mean, sd, n);
+    xmvn_chol(x, z, mean, sd, sMod::nDims, iFirst, iLast);
+  }
+  return;
+}
+// reduced version
+template <class sMod>
+inline void xmvn(double *x, double *z, double *mean, double *sd) {
+  if(sMod::diagDiff) {
+    xmvn_diag(x, z, mean, sd, sMod::nDims);
+  } else {
+    xmvn_chol(x, z, mean, sd, sMod::nDims);
   }
   return;
 }
 
+// full version
 template <class sMod>
 inline void zmvn(double *z, double *x,
-		      double *mean, double *sd, int n, int nMax) {
+		      double *mean, double *sd, int iLast) {
   if(sMod::diagDiff) {
-    zmvn_diag(z, x, mean, sd, n, nMax);
+    zmvn_diag(z, x, mean, sd, iLast);
   } else {
-    zmvn_chol(z, x, mean, sd, n, nMax);
+    zmvn_chol(z, x, mean, sd, sMod::nDims, iLast);
+  }
+  return;
+}
+// reduced version
+template <class sMod>
+inline void zmvn(double *z, double *x,
+		      double *mean, double *sd) {
+  if(sMod::diagDiff) {
+    zmvn_diag(z, x, mean, sd, sMod::nDims);
+  } else {
+    zmvn_chol(z, x, mean, sd, sMod::nDims);
   }
   return;
 }
 
+// full version
 template <class sMod>
 inline double lmvn(double *x, double *z,
-		   double *mean, double *sd, int n) {
+		   double *mean, double *sd, int iLast) {
   double ld;
   if(sMod::diagDiff) {
-    ld = lmvn_diag(x, z, mean, sd, n);
+    ld = lmvn_diag(x, z, mean, sd, iLast);
   } else {
-    ld = lmvn_chol(x, z, mean, sd, n);
+    ld = lmvn_chol(x, z, mean, sd, sMod::nDims, iLast);
+  }
+  return ld;
+}
+// reduced version
+template <class sMod>
+inline double lmvn(double *x, double *z,
+		   double *mean, double *sd) {
+  double ld;
+  if(sMod::diagDiff) {
+    ld = lmvn_diag(x, z, mean, sd, sMod::nDims);
+  } else {
+    ld = lmvn_chol(x, z, mean, sd, sMod::nDims);
   }
   return ld;
 }

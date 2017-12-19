@@ -56,7 +56,7 @@ bmod <- sde.examples("biou")
 # simulate some data
 
 # true parameter values
-Gamma0 <- matrix(rnorm(4),2,2)
+Gamma0 <- .1 * crossprod(matrix(rnorm(4),2,2))
 Lambda0 <- rnorm(2)
 Phi0 <- crossprod(matrix(rnorm(4),2,2))
 Psi0 <- chol(Phi0) # precompiled model uses the Cholesky scale
@@ -67,7 +67,7 @@ Y0 <- rnorm(2)
 names(Y0) <- bmod$data.names
 
 # simulation
-dT <- runif(1)
+dT <- runif(1, max = .1) # time step
 nObs <- 10
 bsim <- sde.sim(bmod, x0 = Y0, theta = theta0,
                 dt = dT, dt.sim = dT, nobs = nObs)

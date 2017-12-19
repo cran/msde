@@ -14,33 +14,36 @@ source("msde-testfunctions.R")
 
 nreps <- 10
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE))
+ncases <- nrow(cases)
 
 # drift
 test_that("drift.R == drift.cpp", {
-  mxd <- sapply(1:nrow(cases), function(ii) {
+  mxd <- matrix(NA, ncases, 2)
+  for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     init <- input.init(nreps, sx, st, randx, randt)
     dr <- sde.drift(model = model, x = init$X, theta = init$Theta)
     dr.R <- drift.fun(x = init$X.R, theta = init$Theta.R)
     if(sx && st) dr.R <- dr.R[1,]
-    max.diff(dr, dr.R)
-  })
-  sapply(mxd, expect_equal, expected = 0)
+    mxd[ii,] <- max.diff(dr, dr.R)
+    expect_equal(mxd[ii,], c(0,0))
+  }
 })
 
 # diffusion
 test_that("diff.R == diff.cpp", {
-  mxd <- sapply(1:nrow(cases), function(ii) {
+  mxd <- matrix(NA, ncases, 2)
+  for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     init <- input.init(nreps, sx, st, randx, randt)
     df <- sde.diff(model = model, x = init$X, theta = init$Theta)
     df.R <- diff.fun(x = init$X.R, theta = init$Theta.R)
     if(sx && st) df.R <- df.R[1,]
-    max.diff(df, df.R)
-  })
-  sapply(mxd, expect_equal, expected = 0)
+    mxd[ii,] <- max.diff(df, df.R)
+    expect_equal(mxd[ii,], c(0, 0))
+  }
 })
 
 #--- test simulation -----------------------------------------------------------
@@ -52,9 +55,11 @@ nobs <- 8
 burn <- 3
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE),
                      burn = c(0, burn), nreps = c(1, nreps), rr = c(1, 2))
+ncases <- nrow(cases)
 
 test_that("sim.R == sim.cpp", {
-  mxd <- sapply(1:nrow(cases), function(ii) {
+  mxd <- matrix(NA, ncases, 2)
+  for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     burn <- cases$burn[ii]
@@ -74,9 +79,9 @@ test_that("sim.R == sim.cpp", {
                              dr = drift.fun, df = diff.fun,
                              validx = validx)[burn+1:nobs,]
     }
-    max.diff(sim, drop(sim.R))
-  })
-  sapply(mxd, expect_equal, expected = 0)
+    mxd[ii,] <- max.diff(sim, drop(sim.R))
+    expect_equal(mxd[ii,], c(0, 0))
+  }
 })
 
 #--- test log-likelihood -------------------------------------------------------
@@ -85,9 +90,11 @@ dT <- runif(1)
 nreps <- 10
 nobs <- 8
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE))
+ncases <- nrow(cases)
 
 test_that("ll.R == ll.cpp", {
-  mxd <- sapply(1:nrow(cases), function(ii) {
+  mxd <- matrix(NA, ncases, 2)
+  for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     init <- input.init(nreps = c(nobs, nreps), sx, st, randx, randt)
@@ -100,9 +107,9 @@ test_that("ll.R == ll.cpp", {
     if(sx && st) {
       ll.R <- ll.R[1]
     }
-    max.diff(ll, ll.R)
-  })
-  sapply(mxd, expect_equal, expected = 0)
+    mxd[ii,] <- max.diff(ll, ll.R)
+    expect_equal(mxd[ii,], c(0, 0))
+  }
 })
 
 #--- test default prior --------------------------------------------------------
@@ -110,9 +117,11 @@ test_that("ll.R == ll.cpp", {
 nreps <- 10
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE),
                      ntheta = 0:nparams, nx = 0:ndims)
+ncases <- nrow(cases)
 
 test_that("lpi.R == lpi.cpp", {
-  mxd <- sapply(1:nrow(cases), function(ii) {
+  mxd <- matrix(NA, ncases, 2)
+  for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     init <- input.init(nreps = nreps, sx = sx, st = st, randx ,randt)
@@ -142,7 +151,7 @@ test_that("lpi.R == lpi.cpp", {
       lpi.R <- rep(0, nreps)
     }
     if(sx && st) lpi.R <- lpi.R[1]
-    max.diff(lpi, lpi.R)
-  })
-  sapply(mxd[,2], expect_equal, expected = 0)
+    mxd[ii,] <- max.diff(lpi, lpi.R)
+    expect_equal(mxd[ii,2], 0)
+  }
 })

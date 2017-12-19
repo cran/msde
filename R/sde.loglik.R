@@ -37,7 +37,7 @@ sde.loglik <- function(model, x, dt, theta, ncores = 1) {
   theta <- .format.params(theta, model$param.names)
   # problem dimensions
   ncomp <- dim(x)[2]
-  if(ncomp <= 2) {
+  if(ncomp < 2) {
     stop("likelihood calculation requires at least two observations.")
   }
   if(length(dt) == 1) dt <- rep(dt, ncomp-1)

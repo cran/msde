@@ -70,28 +70,28 @@ template <class sMod, class sPi>
 	       &sde[iCore]);
       // partial observations
       if(nObsComp[ii] > 0) {
-	zmvn<sMod>(Z, &currX[ii*nDims], mean, sd, nDims, nObsComp[ii]);
+	zmvn<sMod>(Z, &currX[ii*nDims], mean, sd, nObsComp[ii]);
       }
       // proposals
-      xmvn<sMod>(&propX[iCore*nDims], Z, mean, sd, nDims);
+      xmvn<sMod>(&propX[iCore*nDims], Z, mean, sd);
       // only calculate acceptance rate if proposal is valid
       if(sde[iCore].isValidData(&propX[iCore*nDims], currTheta)) {
 	// acceptance rate
 	// proposal
-	propAccept[iCore] = lmvn<sMod>(&currX[ii*nDims], Z, mean, sd, nDims);
-	propAccept[iCore] -= lmvn<sMod>(&propX[iCore*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] = lmvn<sMod>(&currX[ii*nDims], Z, mean, sd);
+	propAccept[iCore] -= lmvn<sMod>(&propX[iCore*nDims], Z, mean, sd);
 	// target 1
 	mvEuler<sMod>(mean, sd, &currX[(ii-1)*nDims],
 		      dT[ii-1], sqrtDT[ii-1], currTheta, &sde[iCore]);
-	propAccept[iCore] += lmvn<sMod>(&propX[iCore*nDims], Z, mean, sd, nDims);
-	propAccept[iCore] -= lmvn<sMod>(&currX[ii*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] += lmvn<sMod>(&propX[iCore*nDims], Z, mean, sd);
+	propAccept[iCore] -= lmvn<sMod>(&currX[ii*nDims], Z, mean, sd);
 	// target 2
 	mvEuler<sMod>(mean, sd, &propX[iCore*nDims],
 		      dT[ii], sqrtDT[ii], currTheta, &sde[iCore]);
-	propAccept[iCore] += lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] += lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd);
 	mvEuler<sMod>(mean, sd, &currX[ii*nDims],
 		      dT[ii], sqrtDT[ii], currTheta, &sde[iCore]);
-	propAccept[iCore] -= lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] -= lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd);
 	// evaluate mh ratio
 	if(exp(propAccept[iCore]) >= propU[ii]) {
 	  for(jj = 0; jj < nDims; jj++) {
@@ -113,10 +113,10 @@ template <class sMod, class sPi>
 		  dT[ii-1], sqrtDT[ii-1], currTheta, &sde[iCore]);
     // partial observations
     if(nObsComp[ii] > 0) {
-      zmvn<sMod>(Z, &currX[ii*nDims], mean, sd, nDims, nObsComp[ii]);
+      zmvn<sMod>(Z, &currX[ii*nDims], mean, sd, nObsComp[ii]);
     }
     // proposals
-    xmvn<sMod>(&propX[iCore*nDims], Z, mean, sd, nDims);
+    xmvn<sMod>(&propX[iCore*nDims], Z, mean, sd);
     // acceptance is 100% as long as the proposal is valid
     if(sde[iCore].isValidData(&propX[iCore*nDims], currTheta)) {
       for(jj = 0; jj < nDims; jj++) {
@@ -148,10 +148,10 @@ template <class sMod, class sPi>
 	// target 2
 	mvEuler<sMod>(mean, sd, &propX[iCore*nDims],
 		      dT[ii], sqrtDT[ii], currTheta, &sde[iCore]);
-	propAccept[iCore] += lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] += lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd);
 	mvEuler<sMod>(mean, sd, &currX[ii*nDims],
 		      dT[ii], sqrtDT[ii], currTheta, &sde[iCore]);
-	propAccept[iCore] -= lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd, nDims);
+	propAccept[iCore] -= lmvn<sMod>(&currX[(ii+1)*nDims], Z, mean, sd);
 	// evaluate mh ratio
 	if(exp(propAccept[iCore]) >= propU[ii]) {
 	  currX[nObsComp[0]+jj] = propX[nObsComp[0]+jj];

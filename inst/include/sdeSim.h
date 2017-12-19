@@ -52,7 +52,7 @@ template <class sMod, class sPi>
 	for(kk = 0; kk < nDims; kk++) {
 	  Z[kk] = sdeRNG::rnorm();
 	}
-	xmvn<sMod>(X, Z, mean, sd, nDims);
+	xmvn<sMod>(X, Z, mean, sd);
 	// validate draw
       } while(!sde->isValidData(X, theta) && bad++ < MAXBAD);
       if (bad == MAXBAD) {

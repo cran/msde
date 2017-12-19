@@ -37,7 +37,8 @@ sde.post
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;
 typedef Rcpp::IntegerVector Integer;
-typedef Rcpp::List List;
+using Rcpp::List;
+//typedef Rcpp::List List;
 //using namespace Rcpp;
 //#include "sdeLogLik.h"
 //#include "sdeMCMC.h"

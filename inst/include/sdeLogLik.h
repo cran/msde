@@ -133,7 +133,7 @@ inline double sdeLogLik<sMod>::loglik(double *theta, double *x) {
     mvEuler<sMod>(&propMean[iCore*nDims], &propSd[iCore*nDims2],
 	    &x[ii*nDims], dT[ii], sqrtDT[ii], theta, &sde[iCore]);
     ll += lmvn<sMod>(&x[(ii+1)*nDims], &propZ[ii*nDims],
-    	       &propMean[iCore*nDims], &propSd[iCore*nDims2], nDims);
+		     &propMean[iCore*nDims], &propSd[iCore*nDims2]);
   }
   return(ll);
 }

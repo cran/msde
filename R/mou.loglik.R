@@ -36,7 +36,7 @@
 #' # simulate some data
 #'
 #' # true parameter values
-#' Gamma0 <- matrix(rnorm(4),2,2)
+#' Gamma0 <- .1 * crossprod(matrix(rnorm(4),2,2))
 #' Lambda0 <- rnorm(2)
 #' Phi0 <- crossprod(matrix(rnorm(4),2,2))
 #' Psi0 <- chol(Phi0) # precompiled model uses the Cholesky scale
@@ -47,7 +47,7 @@
 #' names(Y0) <- bmod$data.names
 #'
 #' # simulation
-#' dT <- runif(1)
+#' dT <- runif(1, max = .1) # time step
 #' nObs <- 10
 #' bsim <- sde.sim(bmod, x0 = Y0, theta = theta0,
 #'                 dt = dT, dt.sim = dT, nobs = nObs)
@@ -127,11 +127,11 @@ mou.loglik <- function(X, dt, nvar.obs, Gamma, Lambda, Phi, mu0, Sigma0) {
   # initialize
   mu_n <- mu0
   Sigma_n <- Sigma0
+  qn <- nvar.obs[1] # evaluate PDF
+  lpdf[1] <- .lmvn(X[1,1:qn] - mu_n[1:qn], Sigma_n[1:qn,1:qn,drop=FALSE])
+  if(nobs == 1) return(lpdf)
   # recursions
   for(nn in 1:(nobs-1)) {
-    qn <- nvar.obs[nn] # observed variables
-    # evaluate PDF
-    lpdf[nn] <- .lmvn(X[nn,1:qn] - mu_n[1:qn], Sigma_n[1:qn,1:qn,drop=FALSE])
     # update
     A_n <- diag(ndims) + Gamma * dt[nn]
     b_n <- Lambda * dt[nn]
@@ -153,10 +153,11 @@ mou.loglik <- function(X, dt, nvar.obs, Gamma, Lambda, Phi, mu0, Sigma0) {
       Sigma_n <- C_n + A_n[,(qn+1):ndims,drop=FALSE] %*%
         V_n %*% t(A_n[,(qn+1):ndims,drop=FALSE])
     }
+    # evaluate new PDF
+    qn <- nvar.obs[nn+1]
+    lpdf[nn+1] <- .lmvn(X[nn+1,1:qn] - mu_n[1:qn],
+                        Sigma_n[1:qn,1:qn,drop=FALSE])
   }
-  # finalize
-  qn <- nvar.obs[nobs]
-  lpdf[nobs] <- .lmvn(X[nobs,1:qn] - mu_n[1:qn], Sigma_n[1:qn,1:qn,drop=FALSE])
   sum(lpdf)
 }
 

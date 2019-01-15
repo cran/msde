@@ -17,6 +17,10 @@
     .Call(`_msde_lotvolMakeModel`)
 }
 
+.eou_MakeModel <- function() {
+    .Call(`_msde_eouMakeModel`)
+}
+
 .sde_nParams <- function(sdeptr) {
     .Call(`_msde_sde_nParams`, sdeptr)
 }

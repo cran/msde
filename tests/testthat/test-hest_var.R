@@ -11,6 +11,10 @@ model <- sde.make.model(ModelFile = ModelFile,
                         param.names = param.names,
                         data.names = data.names)
 
+# test parameters
+test.params <- list(dT.max = 1, dT.pf = .1,
+                    test.pf = TRUE)
+
 # heston model drift and diffusion
 drift.fun <- function(x, theta) {
   if(!is.matrix(x)) x <- t(x)
@@ -31,7 +35,9 @@ randx <- function(nreps) {
   X0
 }
 randt <- function(nreps) {
-  Theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
+  # adopt the parameter calibration from Bakshi et. al. (1997) with minor modification
+  Theta <- c(alpha = 0.04, gamma = 1.15, beta = 0.3, sigma = 0.19, rho = -0.64)
+  #Theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
   if(nreps > 1) Theta <- apply(t(replicate(nreps, Theta)), 2, jitter)
   Theta
 }

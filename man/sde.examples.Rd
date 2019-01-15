@@ -4,11 +4,11 @@
 \alias{sde.examples}
 \title{Example SDE models.}
 \usage{
-sde.examples(model = c("hest", "pgnet", "lotvol", "biou"),
+sde.examples(model = c("hest", "pgnet", "lotvol", "biou", "eou"),
   file.only = FALSE)
 }
 \arguments{
-\item{model}{Character string giving the name of a sample model.  Possible values are: \code{hest}, \code{pgnet}, \code{lotvol}, \code{biou}.  See Details.}
+\item{model}{Character string giving the name of a sample model.  Possible values are: \code{hest}, \code{pgnet}, \code{lotvol}, \code{biou}, \code{eou}.  See Details.}
 
 \item{file.only}{If \code{TRUE} returns only the path to the header file containing the \code{sdeModel} object implementation.}
 }

@@ -89,7 +89,7 @@ $$
 \begin{bmatrix}
 \gamma_3 D_t - \gamma_7 R_t \\
 2 \gamma_6 Q_t - \gamma_8P_t + \gamma_4 R_t -\gamma_5 P_t(P_t-1) \\
-\gamma_2(10-D_t) - \gamma_1 D_t Q_t - \gamma_6 Q_t + \tfrac 1 2 \gamma_6 P_t(P_t-1) \\
+\gamma_2(10-D_t) - \gamma_1 D_t Q_t - \gamma_6 Q_t + \tfrac 1 2 \gamma_5 P_t(P_t-1) \\
 \gamma_2(10-D_t) - \gamma_1 D_t Q_t
 \end{bmatrix} \\
 \df_\tth(\Y_t) & =

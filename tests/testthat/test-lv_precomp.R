@@ -3,7 +3,7 @@
 #library(msde)
 context("lotka-volterra model -- sd scale (precompiled)")
 
-# setup heston model
+# setup lotvol model
 ## ModelFile <- "hestModel.h"
 ## param.names <- c("alpha", "gamma", "beta", "sigma", "rho")
 ## data.names <- c("X", "Z")
@@ -11,6 +11,10 @@ context("lotka-volterra model -- sd scale (precompiled)")
 ##                         param.names = param.names,
 ##                         data.names = data.names)
 model <- sde.examples(model = "lotvol")
+
+# test parameters
+test.params <- list(dT.max = 1, dT.pf = .1,
+                    test.pf = TRUE)
 
 # lotka-volterra model drift and diffusion
 drift.fun <- function(x, theta) {

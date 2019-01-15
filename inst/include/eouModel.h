@@ -5,9 +5,9 @@
 
 /////////////////////////////////////////
 
-// Heston's model:
-// dXt = (alpha - .125 * Zt^2)dt + .5 * Zt dB_Xt
-// dZt = (beta/Zt - .5*gamma * Zt)dt + sigma * dB_Zt
+// Exponential OU model:
+// dXt = (alpha - .5*exp(Zt))dt + exp(.5*Zt) dB_Xt
+// dZt = -(gamma*Zt + eta)dt + sigma * dB_Zt
 // cor(B_Xt, B_Zt) = rho
 
 // sde model object
@@ -24,15 +24,16 @@ class sdeModel {
 };
 
 // drift function
+// theta = c(alpha, gamma, eta, sigma, rho)
 inline void sdeModel::sdeDr(double *dr, double *x, double *theta) {
-  dr[0] = (theta[0] - .125 * x[1]*x[1]); // x
-  dr[1] = (theta[2]/x[1] - .5 * theta[1]*x[1]); // z
+  dr[0] = (theta[0] - .5 * exp(x[1])); // x
+  dr[1] = -(theta[1]*x[1] + theta[2]); // z
   return;
 }
 
 // diffusion function
 inline void sdeModel::sdeDf(double *df, double *x, double *theta) {
-  df[0] = .5 * x[1];
+  df[0] = exp(.5*x[1]);
   df[2] = theta[3];
   df[3] = sqrt(1.0-theta[4]*theta[4]) * df[2];
   df[2] *= theta[4];
@@ -41,15 +42,15 @@ inline void sdeModel::sdeDf(double *df, double *x, double *theta) {
 
 // data validator
 inline bool sdeModel::isValidData(double *x, double *theta) {
-  return(x[1] > 0.0);
+  return(true);
 }
 
 // parameter validator
 inline bool sdeModel::isValidParams(double *theta) {
   bool isValid;
-  isValid = (theta[1] > 0) && (theta[3] > 0);
-  isValid = isValid && (-1.0 < theta[4]) && (1.0 > theta[4]);
-  isValid = isValid && (theta[2] > 0.5 * theta[3] * theta[3]);
+  isValid = (theta[1] > 0) && (theta[3] > 0); // gamma, sigma > 0
+  isValid = isValid && (-1.0 < theta[4]) && (1.0 > theta[4]); // -1 < rho < 1
+  //isValid = isValid && (theta[2] > 0.5 * theta[3] * theta[3]);
   return(isValid);
 }
 

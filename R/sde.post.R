@@ -1,6 +1,7 @@
 #' MCMC sampler for the SDE posterior.
 #'
 #' A Metropolis-within-Gibbs sampler for the Euler-Maruyama approximation to the true posterior density.
+#'
 #' @param model An \code{sde.model} object constructed with \code{\link{sde.make.model}}.
 #' @param init An \code{sde.init} object constructed with \code{\link{sde.init}}.
 #' @param hyper The hyperparameters of the SDE prior.  See \code{\link{sde.prior}}.

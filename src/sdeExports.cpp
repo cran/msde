@@ -1,6 +1,8 @@
 // generic R wrappers to exported members of instantiated Cobj
 
-#include <Rcpp.h>
+// #include <Rcpp.h>
+//[[Rcpp::depends("RcppArmadillo")]]
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 #include "sdeInterface.h"
 

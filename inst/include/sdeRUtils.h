@@ -1,7 +1,9 @@
 #ifndef sdeRUtils_h
 #define sdeRUtils_h
 
-#include <Rcpp.h>
+// #include <Rcpp.h>
+//[[Rcpp::depends("RcppArmadillo")]]
+#include <RcppArmadillo.h>
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;
 typedef Rcpp::IntegerVector Integer;

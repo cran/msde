@@ -33,12 +33,14 @@ sde.post
 #ifndef sdeInterface_h
 #define sdeInterface_h
 
-#include <Rcpp.h>
+// #include <Rcpp.h>
+//[[Rcpp::depends("RcppArmadillo")]]
+#include <RcppArmadillo.h>
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;
 typedef Rcpp::IntegerVector Integer;
-using Rcpp::List;
-//typedef Rcpp::List List;
+typedef Rcpp::NumericMatrix NumericMatrix;
+typedef Rcpp::List List;
 //using namespace Rcpp;
 //#include "sdeLogLik.h"
 //#include "sdeMCMC.h"

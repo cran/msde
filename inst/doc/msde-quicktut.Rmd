@@ -352,7 +352,7 @@ legend("topleft", legend = c("Hare", "Lynx"), fill = clrs)
 
 ## Inference for multivariate SDE models
 
-Parameter inference is conducted used a well-known data augmentation scheme due to @pedersen95.  Assume that, as above, the SDE observations are evenly spaced with interobservation time $\dt$.  For any integer $m > 0$, let $\Y_{(m)} = (\rv [m,0] \Y {m,Nm})$ denote the value of the SDE at equally spaced intervals of $\dt_m = \dt/m$.  Thus, $\Y_{(1)} = \Y$ corresponds to the observed data, and for $m > 1$, we have $\Y_{m,nm} = \Y_n$.  Thus we shall refer to the "missing data" as $\Ym = \Y_{(m)} \setminus \Y$.  The Euler-Maruyama approximation to the complete likelihood is
+Parameter inference is conducted used a well-known data augmentation scheme due to @pedersen95.  Assume that, as above, the SDE observations are evenly spaced with interobservation time $\dt$.  For any integer $m > 0$, let $\Y_{(m)} = (\rv [m,0] {\Y} {m,Nm})$ denote the value of the SDE at equally spaced intervals of $\dt_m = \dt/m$.  Thus, $\Y_{(1)} = \Y$ corresponds to the observed data, and for $m > 1$, we have $\Y_{m,nm} = \Y_n$.  Thus we shall refer to the "missing data" as $\Ym = \Y_{(m)} \setminus \Y$.  The Euler-Maruyama approximation to the complete likelihood is
 $$
 \mathcal L(\tth \mid \Y_{(m)}) = \prod_{n=0}^{Nm-1} \varphi\Big(\Y_{m,n+1} \mid \Y_{m,n} + \dr_\tth(\Y_{m,n})\dt_m, \df_\tth(\Y_{m,n}\dt)\Big),
 $$

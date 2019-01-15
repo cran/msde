@@ -2,10 +2,11 @@
 // specific to R/C++ interface
 // (rest of include directory is not, except rngUtils.h)
 
-#include <Rcpp.h>
+//[[Rcpp::depends("msde")]]
+//[[Rcpp::depends("RcppArmadillo")]]
+//[[Rcpp::depends("RcppProgress")]]
+#include <RcppArmadillo.h>
 using namespace Rcpp;
-//[[Rcpp::depends(msde)]]
-//[[Rcpp::depends(RcppProgress)]]
 #include <sdeInterface.h>
 #include "sdeModel.h"
 #include "sdePrior.h"

@@ -7,6 +7,9 @@
 
 ndims <- model$ndims
 nparams <- model$nparams
+abs.tol <- 1e-6 # absolute tolerance
+dT.max <- test.params$dT.max # maximum step size
+dT.pf <- test.params$dT.pf # maximum step size fr particle filter
 
 source("msde-testfunctions.R")
 
@@ -27,7 +30,7 @@ test_that("drift.R == drift.cpp", {
     dr.R <- drift.fun(x = init$X.R, theta = init$Theta.R)
     if(sx && st) dr.R <- dr.R[1,]
     mxd[ii,] <- max.diff(dr, dr.R)
-    expect_equal(mxd[ii,], c(0,0))
+    expect_equal(mxd[ii,], c(0,0), tolerance = abs.tol)
   }
 })
 
@@ -42,19 +45,19 @@ test_that("diff.R == diff.cpp", {
     df.R <- diff.fun(x = init$X.R, theta = init$Theta.R)
     if(sx && st) df.R <- df.R[1,]
     mxd[ii,] <- max.diff(df, df.R)
-    expect_equal(mxd[ii,], c(0, 0))
+    expect_equal(mxd[ii,], c(0, 0), tolerance = abs.tol)
   }
 })
 
 #--- test simulation -----------------------------------------------------------
 
 SEED <- sample(1000, 1)
-dT <- runif(1)
-nreps <- 10
-nobs <- 8
-burn <- 3
+## nreps <- 10
+## nobs <- 8
+## burn <- 3
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE),
-                     burn = c(0, burn), nreps = c(1, nreps), rr = c(1, 2))
+                     burn = c(TRUE, FALSE), nreps = c(TRUE, FALSE),
+                     rr = c(TRUE, FALSE))
 ncases <- nrow(cases)
 
 test_that("sim.R == sim.cpp", {
@@ -62,9 +65,11 @@ test_that("sim.R == sim.cpp", {
   for(ii in 1:ncases) {
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
-    burn <- cases$burn[ii]
-    nreps <- cases$nreps[ii]
-    rr <- cases$rr[ii]
+    dT <- runif(1, max = dT.max)
+    burn <- ifelse(cases$burn[ii], sample(1:3, 1), 0)
+    nreps <- ifelse(cases$nreps[ii], sample(5:10, 1), 1)
+    nobs <- sample(5:10, 1)
+    rr <- ifelse(cases$rr[ii], sample(2:3,1), 1)
     init <- input.init(nreps, sx, st, randx, randt)
     set.seed(seed = SEED)
     sim <- sde.sim(model = model, x0 = init$X, theta = init$Theta,
@@ -80,21 +85,21 @@ test_that("sim.R == sim.cpp", {
                              validx = validx)[burn+1:nobs,]
     }
     mxd[ii,] <- max.diff(sim, drop(sim.R))
-    expect_equal(mxd[ii,], c(0, 0))
+    expect_equal(mxd[ii,], c(0, 0), tolerance = abs.tol)
   }
 })
 
 #--- test log-likelihood -------------------------------------------------------
 
-dT <- runif(1)
-nreps <- 10
-nobs <- 8
 cases <- expand.grid(single.x = c(TRUE, FALSE), single.theta = c(TRUE, FALSE))
 ncases <- nrow(cases)
 
 test_that("ll.R == ll.cpp", {
   mxd <- matrix(NA, ncases, 2)
   for(ii in 1:ncases) {
+    dT <- runif(1, max = dT.max)
+    nobs <- sample(5:20, 1)
+    nreps <- sample(10:20, 1)
     sx <- cases$single.x[ii]
     st <- cases$single.theta[ii]
     init <- input.init(nreps = c(nobs, nreps), sx, st, randx, randt)
@@ -108,7 +113,7 @@ test_that("ll.R == ll.cpp", {
       ll.R <- ll.R[1]
     }
     mxd[ii,] <- max.diff(ll, ll.R)
-    expect_equal(mxd[ii,], c(0, 0))
+    expect_equal(mxd[ii,], c(0, 0), tolerance = abs.tol)
   }
 })
 
@@ -152,6 +157,8 @@ test_that("lpi.R == lpi.cpp", {
     }
     if(sx && st) lpi.R <- lpi.R[1]
     mxd[ii,] <- max.diff(lpi, lpi.R)
-    expect_equal(mxd[ii,2], 0)
+    expect_equal(mxd[ii,2], 0, tolerance = abs.tol)
   }
 })
+
+

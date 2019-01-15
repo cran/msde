@@ -1,7 +1,7 @@
 #' Example SDE models.
 #'
 #' Provides sample \code{C++} code for several SDE models.
-#' @param model Character string giving the name of a sample model.  Possible values are: \code{hest}, \code{pgnet}, \code{lotvol}, \code{biou}.  See Details.
+#' @param model Character string giving the name of a sample model.  Possible values are: \code{hest}, \code{pgnet}, \code{lotvol}, \code{biou}, \code{eou}.  See Details.
 #' @param file.only If \code{TRUE} returns only the path to the header file containing the \code{sdeModel} object implementation.
 #' @return An \code{sde.model} object, or the path to the C++ model header file.
 #' @details All pre-compiled models are with the default prior and with \code{OpenMP} disabled.  A full description of the example models can be found in the package vignette; to view it run \code{vignette("msde-exmodels")}.
@@ -23,7 +23,7 @@
 #'                        data.names = data.names)
 #' }
 #' @export
-sde.examples <- function(model = c("hest", "pgnet", "lotvol", "biou"),
+sde.examples <- function(model = c("hest", "pgnet", "lotvol", "biou", "eou"),
                          file.only = FALSE) {
   model <- match.arg(model)
   if(model == "hest") {
@@ -48,6 +48,11 @@ sde.examples <- function(model = c("hest", "pgnet", "lotvol", "biou"),
     param.names <- c("alpha", "beta", "gamma")
     data.names <- c("H", "L")
     sptr <- .lotvol_MakeModel()
+  } else if(model == "eou") {
+    ModelFile <- file.path(.msde_include_path, "eouModel.h")
+    param.names <- c("alpha", "gamma", "eta", "sigma", "rho")
+    data.names <- c("X", "V")
+    sptr <- .eou_MakeModel()
   }
   if(!file.only) {
     sde.model <- list(ptr = sptr,

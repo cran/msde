@@ -4,9 +4,10 @@
 \alias{sde.post}
 \title{MCMC sampler for the SDE posterior.}
 \usage{
-sde.post(model, init, hyper, nsamples, burn, mwg.sd = NULL, adapt = TRUE,
-  loglik.out = FALSE, last.miss.out = FALSE, update.data = TRUE, data.out,
-  update.params = TRUE, fixed.params, ncores = 1, verbose = TRUE)
+sde.post(model, init, hyper, nsamples, burn, mwg.sd = NULL,
+  adapt = TRUE, loglik.out = FALSE, last.miss.out = FALSE,
+  update.data = TRUE, data.out, update.params = TRUE, fixed.params,
+  ncores = 1, verbose = TRUE)
 }
 \arguments{
 \item{model}{An \code{sde.model} object constructed with \code{\link{sde.make.model}}.}

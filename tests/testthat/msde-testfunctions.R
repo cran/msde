@@ -86,7 +86,8 @@ input.init <- function(nreps, sx, st, randx, randt) {
     }
   } else {
     if(has.ncomp) {
-      X <- array(X, dim = c(ncomp, ncol(X), nreps))
+      X <- array(X, dim = c(ncomp, nreps, ncol(X)))
+      X <- aperm(X, c(1, 3, 2))
     }
     X.R <- X
   }

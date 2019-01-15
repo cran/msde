@@ -1,7 +1,9 @@
 #ifndef sdePost_h
 #define sdePost_h
 
-#include <Rcpp.h>
+//#include <Rcpp.h>
+//[[Rcpp::depends("RcppArmadillo")]]
+#include <RcppArmadillo.h>
 //using namespace Rcpp;
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;

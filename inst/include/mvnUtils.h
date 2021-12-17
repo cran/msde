@@ -1,3 +1,17 @@
+/// @file mvnUtils.h
+///
+/// Utilities for the multivariate normal distribution.
+///
+/// Suppose we have `x ~ N(mu, Sigma)` and `sd` is the lower Cholesky factor of `Sigma = sd * sd'`.  The utilities provided are:
+///
+/// - `xmvn`: Calculate `x = sd * z + mu`.
+/// - `zmvn`: Calculate `z = sd^{-1} * (x-mu)`.
+/// - `lmvn`: Calculate the log-pdf of `x ~ N(mu, Sigma)`.
+///
+/// Each utility has an implementation for dense `Sigma` and for diagonal `Sigma`.
+///
+/// In all functions below, `sd = cholSd'`, i.e., `cholSd` is the uppor triangular Cholesky factor of `Sigma = cholSd' * cholSd`.  Also, only the upper triangular entries of `cholSd` are used, i.e., the lower triangular entries can be arbitrary without affecting the output.
+
 #ifndef mvnUtils_h
 #define mvnUtils_h 1
 
@@ -8,14 +22,17 @@
 #endif
 */
 
-// main functions are: xmvn, zmvn, lmvn.  have one for cholSd's and sd's
-// which are just diagonal.
-
-// in all functions below, sd = lowTri(cholSD'), i.e., cholesky factor, and
-// only upper triangular entries of cholSD are used.
-
-// x = sd * z + mean
-// only apply to indices between iFirst and iLast-1, inclusively.
+/// Calculate `x = sd * z + mean` for lower triangular `sd`.
+///
+/// Can specify that the calculation is only performed to obtain `x[iFirst]` through `x[iLast]`.
+/// 
+/// @param[out] x Vector of length `n`.
+/// @param[in] z Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] cholSd Vector of length `n^2`, which gets rearranged to a `n x n` upper triangular matrix.
+/// @param[in] n Size of the problem.
+/// @param[in] iFirst The first desired element of the output.
+/// @param[in] iLast The last desired element of the output.
 inline void xmvn_chol(double *x, double *z,
 		      double *mean, double *cholSd,
 		      int n, int iFirst, int iLast) {
@@ -29,15 +46,25 @@ inline void xmvn_chol(double *x, double *z,
   return;
 }
 
-// simplified version
+/// Calculate `x = sd * z + mean` for lower triangular `sd`.
+///
+/// Simplified version: assumes `iFirst = 0` and `iLast = n`.
 inline void xmvn_chol(double *x, double *z,
 		      double *mean, double *cholSd, int n) {
   xmvn_chol(x, z, mean, cholSd, n, 0, n);
   return;
 }
 
-// z = sd^{-1} * (x - mean).
-// only calculates first iLast values of z.
+/// Calculate `z = sd^{-1} * (x - mean)` for lower triangular `sd`.
+///
+/// Can specify that the calculation is only performed to obtain `z[0], ..., z[iLast-1]`.
+///
+/// @param[out] z Vector of length `n`.
+/// @param[in] x Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] cholSd Vector of length `n^2`, which gets rearranged to a `n x n` upper triangular matrix.
+/// @param[in] n Size of the problem.
+/// @param[in] iLast The last desired element of the output.
 inline void zmvn_chol(double *z, double *x,
 		      double *mean, double *cholSd,
 		      int n, int iLast) {
@@ -54,7 +81,9 @@ inline void zmvn_chol(double *z, double *x,
   return;
 }
 
-// simplified version
+/// Calculate `z = sd^{-1} * (x - mean)` for lower triangular `sd`.
+///
+/// Simplified version: assumes `iLast = n`.
 inline void zmvn_chol(double *z, double *x,
 		      double *mean, double *cholSd, int n) {
   zmvn_chol(z, x, mean, cholSd, n, n);
@@ -62,11 +91,21 @@ inline void zmvn_chol(double *z, double *x,
 }
 
 
-// log-normal density evaluation.
-// z[] is required as temporary storage of residuals,
-// i.e., z = sd^{-1} * (x - mean)
-// only evaluate marginal PDF of first iLast observations.
-// TODO: include pi factor
+/// Calculate the log-density of `x ~ N(mean, sd * sd')` for lower-triangular `sd`.
+///
+/// Can specify that the log-density is only evaluated for `x[0], ..., x[iLast-1]`.
+/// @notes
+/// - `z` is required for temporary storage of residuals, i.e., `z = sd^{-1} * (x - mean)`.
+/// - **TODO:** Include factor of `pi`.
+///
+/// @param[in] x Vector of length `n`.
+/// @param[in] z Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] cholSd Vector of length `n^2`, which gets rearranged to a `n x n` upper triangular matrix.
+/// @param[in] n Size of the problem.
+/// @param[in] iLast Specifies which marginal distribution of `x` to return.
+///
+/// @return The log-density of `x[0:iLast] ~ N(mean[0:iLast], (sd * sd')[...])`.
 inline double lmvn_chol(double *x, double *z,
 			double *mean, double *cholSd, int n, int iLast) {
   double ssq = 0.0; // sum(z^2)
@@ -88,7 +127,9 @@ inline double lmvn_chol(double *x, double *z,
   return(-(.5*ssq + ldC));
 }
 
-// simplified version
+/// Calculate the log-density of `x ~ N(mean, sd * sd')` for lower-triangular `sd`.
+///
+/// Simplified version: assumes that `iLast = n`.
 inline double lmvn_chol(double *x, double *z,
 			double *mean, double *cholSd, int n) {
   return lmvn_chol(x, z, mean, cholSd, n, n);
@@ -99,6 +140,17 @@ inline double lmvn_chol(double *x, double *z,
 
 // don't need iLast versions for zmvn and lmvn
 
+/// Calculate `x = sd * z + mean` for diagonal `sd`.
+///
+/// Can specify that the calculation is only performed to obtain `x[iFirst]` through `x[iLast]`.
+/// 
+/// @param[out] x Vector of length `n`.
+/// @param[in] z Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] diagSd Vector of length `n` such that `sd = diag(diagSd)`.
+/// @param[in] n Size of the problem.
+/// @param[in] iFirst The first desired element of the output.
+/// @param[in] iLast The last desired element of the output.
 inline void xmvn_diag(double *x, double *z,
 		      double *mean, double *diagSd,
 		      int n, int iFirst, int iLast) {
@@ -107,6 +159,10 @@ inline void xmvn_diag(double *x, double *z,
   }
   return;
 }
+
+/// Calculate `x = sd * z + mean` for diagonal `sd`.
+///
+/// Simplified version: assumes `iFirst = 0` and `iLast = n`.
 inline void xmvn_diag(double *x, double *z,
 		      double *mean, double *diagSd,
 		      int n) {
@@ -114,6 +170,14 @@ inline void xmvn_diag(double *x, double *z,
   return;
 }
 
+
+/// Calculate `z = sd^{-1} * (x - mean)` for diagonal `sd`.
+///
+/// @param[out] z Vector of length `n`.
+/// @param[in] x Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] diagSd Vector of length `n` such that `sd = diag(diagSd)`.
+/// @param[in] n Size of the problem.
 inline void zmvn_diag(double *z, double *x,
 		      double *mean, double *diagSd, int n) {
   for(int ii=0; ii<n; ii++) {
@@ -121,19 +185,24 @@ inline void zmvn_diag(double *z, double *x,
   }
   return;
 }
-/* inline void zmvn_diag(double *z, double *x, */
-/* 		      double *mean, double *diagSd, int n) { */
-/*   zmvn_diag(z, x, mean, diagSd, n, n); */
-/*   return; */
-/* } */
 
-inline double lmvn_diag(double *x, double *z,
+
+/// Calculate the log-density of `x ~ N(mean, sd * sd')` for diagonal `sd`.
+///
+/// @param[in] x Vector of length `n`.
+/// @param[in] mean Vector of length `n`.
+/// @param[in] diagSd Vector of length `n` such that `sd = diag(diagSd)`.
+/// @param[in] n Size of the problem.
+///
+/// @return The log-density of `x ~ N(mean, sd * sd')`.
+inline double lmvn_diag(double *x,
 			double *mean, double *diagSd, int n) {
+  double z;
   double ssq = 0.0;
   double ldC = 0.0;
   for(int ii=0; ii<n; ii++) {
-    z[ii] = (x[ii] - mean[ii])/diagSd[ii];
-    ssq += z[ii]*z[ii];
+    z = (x[ii] - mean[ii])/diagSd[ii];
+    ssq += z*z;
     ldC += log(diagSd[ii]);
   }
   return(-(.5*ssq + ldC));

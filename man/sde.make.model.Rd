@@ -4,30 +4,37 @@
 \alias{sde.make.model}
 \title{Create an SDE model object.}
 \usage{
-sde.make.model(ModelFile, PriorFile = "default", data.names, param.names,
-  hyper.check, OpenMP = FALSE, ...)
+sde.make.model(
+  ModelFile,
+  PriorFile = "default",
+  data.names,
+  param.names,
+  hyper.check,
+  OpenMP = FALSE,
+  ...
+)
 }
 \arguments{
 \item{ModelFile}{Path to the header file where the SDE model is defined.}
 
-\item{PriorFile}{Path to the header file where the SDE prior is defined.  See \code{\link{sde.prior}} for details.}
+\item{PriorFile}{Path to the header file where the SDE prior is defined.  See \code{\link[=sde.prior]{sde.prior()}} for details.}
 
-\item{data.names}{Vector of names for the SDE components.  Defaults to \code{X1,...,Xd}.}
+\item{data.names}{Vector of names for the SDE components.  Defaults to \verb{X1,...,Xd}.}
 
-\item{param.names}{Vector of names for the SDE parameters.  Defaults to \code{theta1,...,thetap}.}
+\item{param.names}{Vector of names for the SDE parameters.  Defaults to \verb{theta1,...,thetap}.}
 
-\item{hyper.check}{A function with arguments \code{hyper}, \code{param.names}, and \code{data.names} used for passing the model hyper parameters to the C++ code.  See \code{\link{mvn.hyper.check}} for details.}
+\item{hyper.check}{A function with arguments \code{hyper}, \code{param.names}, and \code{data.names} used for passing the model hyper parameters to the C++ code.  See \code{\link[=mvn.hyper.check]{mvn.hyper.check()}} for details.}
 
 \item{OpenMP}{Logical; whether the model is compiled with \code{OpenMP} for C++ level parallelization.}
 
-\item{...}{additional arguments to \code{Rcpp::sourceCpp} for compiling the C++ code.}
+\item{...}{additional arguments to \code{\link[Rcpp:sourceCpp]{Rcpp::sourceCpp()}} for compiling the C++ code.}
 }
 \value{
 An \code{sde.model} object, consisting of a list with the following elements:
 \describe{
-\item{\code{model.ptr}}{Pointer to C++ sde object (\code{sdeCobj}) implementing the member functions: drift/diffusion, data/parameter validators, loglikelihood, prior distribution, forward simulation, MCMC algorithm for Bayesian inference.}
-\item{\code{ndims, nparams}}{The number of SDE components and parameters.}
-\item{\code{data.names, param.names}}{The names of the SDE components and parameters.}
+\item{\code{ptr}}{Pointer to C++ sde object (\code{sdeRobj}) implementing the member functions: drift/diffusion, data/parameter validators, loglikelihood, prior distribution, forward simulation, MCMC algorithm for Bayesian inference.}
+\item{\code{ndims}, \code{nparams}}{The number of SDE components and parameters.}
+\item{\code{data.names}, \code{param.names}}{The names of the SDE components and parameters.}
 \item{\code{omp}}{A logical flag for whether or not the model was compiled for multicore functionality with \code{OpenMP}.}
 }
 }
@@ -37,7 +44,7 @@ Compiles the C++ code for various SDE-related algorithms and makes the routines 
 \examples{
 # header (C++) file for Heston's model
 hfile <- sde.examples("hest", file.only = TRUE)
-cat(readLines(hfile), sep = "\\n")
+cat(readLines(hfile), sep = "\n")
 
 \donttest{
 # compile the model
@@ -51,5 +58,5 @@ hmod
 }
 }
 \seealso{
-\code{\link{sde.drift}}, \code{\link{sde.diff}}, \code{\link{sde.valid}}, \code{\link{sde.loglik}}, \code{\link{sde.prior}}, \code{\link{sde.sim}}, \code{\link{sde.post}}.
+\code{\link[=sde.drift]{sde.drift()}}, \code{\link[=sde.diff]{sde.diff()}}, \code{\link[=sde.valid]{sde.valid()}}, \code{\link[=sde.loglik]{sde.loglik()}}, \code{\link[=sde.prior]{sde.prior()}}, \code{\link[=sde.sim]{sde.sim()}}, \code{\link[=sde.post]{sde.post()}}.
 }

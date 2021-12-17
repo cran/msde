@@ -4,8 +4,10 @@
 \alias{sde.examples}
 \title{Example SDE models.}
 \usage{
-sde.examples(model = c("hest", "pgnet", "lotvol", "biou", "eou"),
-  file.only = FALSE)
+sde.examples(
+  model = c("hest", "pgnet", "lotvol", "biou", "eou"),
+  file.only = FALSE
+)
 }
 \arguments{
 \item{model}{Character string giving the name of a sample model.  Possible values are: \code{hest}, \code{pgnet}, \code{lotvol}, \code{biou}, \code{eou}.  See Details.}
@@ -16,7 +18,7 @@ sde.examples(model = c("hest", "pgnet", "lotvol", "biou", "eou"),
 An \code{sde.model} object, or the path to the C++ model header file.
 }
 \description{
-Provides sample \code{C++} code for several SDE models.
+Provides sample \verb{C++} code for several SDE models.
 }
 \details{
 All pre-compiled models are with the default prior and with \code{OpenMP} disabled.  A full description of the example models can be found in the package vignette; to view it run \code{vignette("msde-exmodels")}.
@@ -27,7 +29,7 @@ hmod <- sde.examples("hest") # load pre-compiled model
 
 # inspect model's C++ code
 hfile <- sde.examples("hest", file.only = TRUE)
-cat(readLines(hfile), sep = "\\n")
+cat(readLines(hfile), sep = "\n")
 
 \dontrun{
 # compile it from scratch
@@ -39,5 +41,5 @@ hmod <- sde.make.model(ModelFile = hfile,
 }
 }
 \seealso{
-\code{\link{sde.make.model}} for \code{sde.model} objects, \code{\link{mvn.hyper.check}} for specification of the default prior.
+\code{\link[=sde.make.model]{sde.make.model()}} for \code{sde.model} objects, \code{\link[=mvn.hyper.check]{mvn.hyper.check()}} for specification of the default prior.
 }

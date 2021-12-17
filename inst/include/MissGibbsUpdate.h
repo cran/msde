@@ -1,3 +1,5 @@
+/// @file MissGibbsUpdate.h
+
 #ifndef MissGibbsUpdate_h
 #define MissGibbsUpdate_h 1
 
@@ -5,8 +7,14 @@
 #include "mvnUtils.h"
 #include "sdeMCMC.h"
 
-// eraker proposal mean and standard deviatiation
-// NOTE: sde = upper triangular cholesky factor
+/// @param[out] mean Array of length `n = sMod::nDims` giving the mean of the Eraker proposal.
+/// @param[out] sd Array of length `n^2`giving the (upper) Cholesky factor of the variance when `sMod::diagDiff = false`, or a vector of length `n` giving the standard deviations of each component when `sMod::diagDiff = true`.
+/// @param[in] x0 Array of length `n` of SDE values at the previous observation.
+/// @param[in] x2 Array of length `n` of SDE values at the next observation.
+/// @param[in] b Scale factor such that `mean = x0 * b + x2 * (1-b)`.
+/// @param[in] b2 Scale factor such that `sd = b2 * chol(sde->sdeDf(x0, theta))`.
+/// @param[in] theta Array of parameter values.
+/// @param[in] sde Pointer to an `sMod` object which has methods to evaluate the SDE diffusion function.
 template <class sMod, class sPi>
   inline void sdeMCMC<sMod, sPi>::mvEraker(double *mean, double *sd,
 					   double *x0, double *x2,
@@ -26,6 +34,11 @@ template <class sMod, class sPi>
   return;
 }
 
+/// Updates `currData` with the new MCMC iteration.
+///
+/// @param[in] jumpSd Array of `nParams + nDims - nObsPerDim[0]` random walk jump sizes.  Only the last `nMiss0` are used.
+/// @param[in,out] gibbsAccept Array of `nComp` integers, each of which gets incremented by 1 if the proposal is accepted.
+/// @param[in,out] paramAccept Array of `nParams` integers, each of which gets incremented by 1 if the proposal is accepted.
 template <class sMod, class sPi>
   inline void sdeMCMC<sMod, sPi>::missGibbsUpdate(double *jumpSd,
 						  int *gibbsAccept,
@@ -155,7 +168,8 @@ template <class sMod, class sPi>
 	// evaluate mh ratio
 	if(exp(propAccept[iCore]) >= propU[ii]) {
 	  currX[nObsComp[0]+jj] = propX[nObsComp[0]+jj];
-	  paramAccept[nParams + jj]++;
+	  // paramAccept[nParams + jj]++;
+	  paramAccept[nParams + nObsComp[0]+jj]++;
 	}
 	else {
 	  propX[nObsComp[0]+jj] = currX[nObsComp[0]+jj];

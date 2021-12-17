@@ -1,32 +1,20 @@
 #' SDE prior function.
 #'
 #' Evaluates the SDE prior given data, parameter, and hyperparameter values.
-#' @param model An \code{sde.model} object.
-#' @param theta A vector or matrix of parameters with \code{nparams} columns.
-#' @param x A vector or matrix of data with \code{ndims} columns.
+#'
+#' @param model An `sde.model` object.
+#' @param theta A vector or matrix of parameters with `nparams` columns.
+#' @param x A vector or matrix of data with `ndims` columns.
 #' @param hyper The hyperparameters of the SDE prior.  See Details.
+#'
 #' @return A vector of log-prior densities evaluated at the inputs.
-#' @details The prior is constructed at the \code{C++} level by defining a function (i.e., public member) \cr \code{double logPrior(double *theta, double *x)} within the \code{sdePrior} class.  At the \code{R} level, the \code{hyper.check} argument of \code{sde.make.model} is a function with arguments \code{hyper}, \code{param.names}, \code{data.names} used to convert \code{hyper} into a list of \code{NULL} or double-vectors which get passed on to the \code{C++} code.  This function can also be used to throw \code{R}-level errors to protect the \code{C++} code from invalid inputs, as is done for the default prior in \code{\link{mvn.hyper.check}}.  For a full example see the "Custom Prior" section in \code{vignette("msde-quicktut")}.
-#' @examples
-#' hmod <- sde.examples("hest") # load Heston's model
 #'
-#' # setting prior for 3 parameters
-#' rv.names <- c("alpha","gamma","rho")
-#' mu <- rnorm(3)
-#' Sigma <- crossprod(matrix(rnorm(9),3,3))
-#' names(mu) <- rv.names
-#' colnames(Sigma) <- rv.names
-#' rownames(Sigma) <- rv.names
-#' hyper <- list(mu = mu, Sigma = Sigma)
-#'
-#' # Simulate data
-#' nreps <- 10
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#' x0 <- c(X = log(1000), Z = 0.1)
-#' Theta <- apply(t(replicate(nreps,theta)),2,jitter)
-#' X0 <- apply(t(replicate(nreps,x0)),2,jitter)
-#'
-#' sde.prior(model = hmod, x = X0, theta = Theta, hyper = hyper)
+#' @details The prior is constructed at the `C++` level by defining a function (i.e., public member)
+#' ```
+#' double logPrior(double *theta, double *x)
+#' ```
+#' within the `sdePrior` class.  At the `R` level, the `hyper.check` argument of [sde.make.model()] is a function with arguments `hyper`, `param.names`, `data.names` used to convert `hyper` into a list of `NULL` or double-vectors which get passed on to the `C++` code.  This function can also be used to throw `R`-level errors to protect the `C++` code from invalid inputs, as is done for the default prior in [mvn.hyper.check()].  For a full example see the "Custom Prior" section in `vignette("msde-quicktut")`.
+#' @example examples/sde.prior.R
 #' @export
 sde.prior <- function(model, theta, x, hyper) {
   if(class(model) != "sde.model") {
@@ -53,10 +41,11 @@ sde.prior <- function(model, theta, x, hyper) {
     stop("model$hyper.check must convert hyper to a list with NULL or numeric-vector elements.")
   }
   # compute
-  ans <- .sde_Prior(sdeptr = model$ptr,
-                    thetaIn = as.double(theta), xIn = as.double(x),
-                    singleTheta = as.logical(single.theta),
-                    singleX = as.logical(single.x),
-                    nReps = as.integer(nreps), phiIn = phi)
+  ans <- model$cobj$Prior(thetaIn = as.double(theta),
+                          xIn = as.double(x),
+                          singleTheta = as.logical(single.theta),
+                          singleX = as.logical(single.x),
+                          nReps = as.integer(nreps),
+                          phiIn = phi)
   ans
 }

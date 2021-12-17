@@ -7,17 +7,17 @@
 mou.loglik(X, dt, nvar.obs, Gamma, Lambda, Phi, mu0, Sigma0)
 }
 \arguments{
-\item{X}{An \code{nobs x ndims} matrix of complete data.}
+\item{X}{An \verb{nobs x ndims} matrix of complete data.}
 
 \item{dt}{A scalar or length \code{nobs-1} vector of interobservations times.}
 
-\item{nvar.obs}{A scalar or length \code{nobs} vector of integers between 0 and \code{ndims} denoting the number of observed SDE variables in each row of \code{data}.  Defaults to \code{ndims}.  See \code{\link{sde.init}} for details.}
+\item{nvar.obs}{A scalar or length \code{nobs} vector of integers between 0 and \code{ndims} denoting the number of observed SDE variables in each row of \code{data}.  Defaults to \code{ndims}.  See \code{\link[=sde.init]{sde.init()}} for details.}
 
-\item{Gamma}{A \code{ndims x ndims} of linear-drift parameters.  See Details.}
+\item{Gamma}{A \verb{ndims x ndims} of linear-drift parameters.  See Details.}
 
 \item{Lambda}{A length-\code{ndims} vector of constant-drift parameters.  See Details.}
 
-\item{Phi}{A \code{ndims x ndims} positive definite variance matrix.  See Details.}
+\item{Phi}{A \verb{ndims x ndims} positive definite variance matrix.  See Details.}
 
 \item{mu0, Sigma0}{Mean and variance of marginal multivariate normal distribution of \code{X[1,]}.  Defaults to iid standard normals for each component.}
 }
@@ -46,7 +46,7 @@ where \eqn{Y_n = Y(t_n)}, \eqn{\Delta_n = t_{n+1} - t_n}{\Delta_n = t_n+1 - t_n}
 }{
 \Delta B_n = B(t_n+1) - B(t_n) \sim iid N(0, \Delta_n).
 }
-Thus, \eqn{Y_0, \ldots, Y_N} is multivariate normal Markov chain for which the marginal distribution of any subset of timepoints and/or components can be efficiently calculated using the Kalman filter.  This can be used to check the MCMC output of \code{\link{sde.post}} as in the example.
+Thus, \eqn{Y_0, \ldots, Y_N} is multivariate normal Markov chain for which the marginal distribution of any subset of timepoints and/or components can be efficiently calculated using the Kalman filter.  This can be used to check the MCMC output of \code{\link[=sde.post]{sde.post()}} as in the example.
 }
 \examples{
 \donttest{

@@ -4,17 +4,30 @@
 \alias{sde.post}
 \title{MCMC sampler for the SDE posterior.}
 \usage{
-sde.post(model, init, hyper, nsamples, burn, mwg.sd = NULL,
-  adapt = TRUE, loglik.out = FALSE, last.miss.out = FALSE,
-  update.data = TRUE, data.out, update.params = TRUE, fixed.params,
-  ncores = 1, verbose = TRUE)
+sde.post(
+  model,
+  init,
+  hyper,
+  nsamples,
+  burn,
+  mwg.sd = NULL,
+  adapt = TRUE,
+  loglik.out = FALSE,
+  last.miss.out = FALSE,
+  update.data = TRUE,
+  data.out,
+  update.params = TRUE,
+  fixed.params,
+  ncores = 1,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{model}{An \code{sde.model} object constructed with \code{\link{sde.make.model}}.}
+\item{model}{An \code{sde.model} object constructed with \code{\link[=sde.make.model]{sde.make.model()}}.}
 
-\item{init}{An \code{sde.init} object constructed with \code{\link{sde.init}}.}
+\item{init}{An \code{sde.init} object constructed with \code{\link[=sde.init]{sde.init()}}.}
 
-\item{hyper}{The hyperparameters of the SDE prior.  See \code{\link{sde.prior}}.}
+\item{hyper}{The hyperparameters of the SDE prior.  See \code{\link[=sde.prior]{sde.prior()}}.}
 
 \item{nsamples}{Number of MCMC iterations.}
 
@@ -43,23 +56,23 @@ sde.post(model, init, hyper, nsamples, burn, mwg.sd = NULL,
 \value{
 A list with elements:
 \describe{
-  \item{\code{params}}{An \code{nsamples x nparams} matrix of posterior parameter draws.}
-  \item{\code{data}}{A 3-d array of posterior missing data draws, for which the output dimensions are specified by \code{data.out}.}
-  \item{\code{init}}{The \code{sde.init} object which initialized the sampler.}
-  \item{\code{data.out}}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the \code{data} output.}
-  \item{\code{mwg.sd}}{A named vector of Metropolis-within-Gibbs standard devations used at the last posterior iteration.}
-  \item{\code{hyper}}{The hyperparameter specification.}
-  \item{\code{loglik}}{If \code{loglik.out == TRUE}, the vector of \code{nsamples} complete data loglikelihoods calculated at each posterior sample.}
-  \item{\code{last.iter}}{A list with elements \code{data} and \code{params} giving the last MCMC sample.  Useful for resuming the MCMC from that point.}
-  \item{\code{last.miss}}{If \code{last.miss.out == TRUE}, an \code{nsamples x nmissN} matrix of all posterior draws for the missing data in the final observation.  Useful for SDE forecasting at future timepoints.}
-  \item{\code{accept}}{A named list of acceptance rates for the various components of the MCMC sampler.}
+\item{\code{params}}{An \verb{nsamples x nparams} matrix of posterior parameter draws.}
+\item{\code{data}}{A 3-d array of posterior missing data draws, for which the output dimensions are specified by \code{data.out}.}
+\item{\code{init}}{The \code{sde.init} object which initialized the sampler.}
+\item{\code{data.out}}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the \code{data} output.}
+\item{\code{mwg.sd}}{A named vector of Metropolis-within-Gibbs standard devations used at the last posterior iteration.}
+\item{\code{hyper}}{The hyperparameter specification.}
+\item{\code{loglik}}{If \code{loglik.out == TRUE}, the vector of \code{nsamples} complete data loglikelihoods calculated at each posterior sample.}
+\item{\code{last.iter}}{A list with elements \code{data} and \code{params} giving the last MCMC sample.  Useful for resuming the MCMC from that point.}
+\item{\code{last.miss}}{If \code{last.miss.out == TRUE}, an \verb{nsamples x nmissN} matrix of all posterior draws for the missing data in the final observation.  Useful for SDE forecasting at future timepoints.}
+\item{\code{accept}}{A named list of acceptance rates for the various components of the MCMC sampler.}
 }
 }
 \description{
 A Metropolis-within-Gibbs sampler for the Euler-Maruyama approximation to the true posterior density.
 }
 \details{
-The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length \code{nparams + ndims}, or a named vector containing the elements defined by \code{sde.init$nvar.obs.m[1]} (the missing variables in the first SDE observation) and \code{fixed.params} (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are \code{.25 * |initial_value|} when \code{|initial_value| > 0}, and 1 otherwise.
+The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length \code{nparams + ndims}, or a named vector containing the elements defined by \code{sde.init$nvar.obs.m[1]} (the missing variables in the first SDE observation) and \code{fixed.params} (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are \verb{.25 * |initial_value|} when \verb{|initial_value| > 0}, and 1 otherwise.
 
 \code{adapt == TRUE} implements an adaptive MCMC proposal by Roberts and Rosenthal (2009).  At step \eqn{n} of the MCMC, the jump size of each MWG random variable is increased or decreased by \eqn{\delta(n)}, depending on whether the cumulative acceptance rate is above or below the optimal value of 0.44.  If \eqn{\sigma_n} is the size of the jump at step \eqn{n}, then the next jump size is determined by
 \deqn{
@@ -69,7 +82,7 @@ log(sigma_(n+1)) = log(sigma_n) \pm delta(n), where delta(n) = min(.01, 1/n^(1/2
 }
 When \code{adapt} is not logical, it is a list with elements \code{max} and \code{rate}, such that \code{delta(n) = min(max, 1/n^rate)}.  These elements can be scalars or vectors in the same manner as \code{mwg.sd}.
 
-For SDE models with thousands of latent variables, \code{data.out} can be used to thin the MCMC missing data output.  An integer vector or scalar returns specific or evenly-spaced posterior samples from the \code{ncomp x ndims} complete data matrix.  A list with elements \code{isamples}, \code{icomp}, and \code{idims} determines which samples, time points, and SDE variables to return.  The first of these can be a scalar or vector with the same meaning as before.
+For SDE models with thousands of latent variables, \code{data.out} can be used to thin the MCMC missing data output.  An integer vector or scalar returns specific or evenly-spaced posterior samples from the \verb{ncomp x ndims} complete data matrix.  A list with elements \code{isamples}, \code{icomp}, and \code{idims} determines which samples, time points, and SDE variables to return.  The first of these can be a scalar or vector with the same meaning as before.
 }
 \examples{
 \donttest{

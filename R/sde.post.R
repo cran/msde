@@ -2,11 +2,11 @@
 #'
 #' A Metropolis-within-Gibbs sampler for the Euler-Maruyama approximation to the true posterior density.
 #'
-#' @param model An \code{sde.model} object constructed with \code{\link{sde.make.model}}.
-#' @param init An \code{sde.init} object constructed with \code{\link{sde.init}}.
-#' @param hyper The hyperparameters of the SDE prior.  See \code{\link{sde.prior}}.
+#' @param model An `sde.model` object constructed with [sde.make.model()].
+#' @param init An `sde.init` object constructed with [sde.init()].
+#' @param hyper The hyperparameters of the SDE prior.  See [sde.prior()].
 #' @param nsamples Number of MCMC iterations.
-#' @param burn Integer number of burn-in samples, or fraction of \code{nsamples} to prepend as burn-in.
+#' @param burn Integer number of burn-in samples, or fraction of `nsamples` to prepend as burn-in.
 #' @param mwg.sd Standard deviation jump size for Metropolis-within-Gibbs on parameters and missing components of first SDE observation (see Details).
 #' @param adapt Logical or list to specify adaptive Metropolis-within-Gibbs sampling (see Details).
 #' @param loglik.out Logical, whether to return the loglikelihood at each step.
@@ -14,66 +14,35 @@
 #' @param update.data Logical, whether to update the missing data.
 #' @param data.out A scalar, integer vector, or list of three integer vectors determining the subset of data to be returned (see Details).
 #' @param update.params Logical, whether to update the model parameters.
-#' @param fixed.params Logical vector of length \code{nparams} indicating which parameters are to be held fixed in the MCMC sampler.
-#' @param ncores If \code{model} is compiled with \code{OpenMP}, the number of cores to use for parallel processing.  Otherwise, uses \code{ncores = 1} and gives a warning.
+#' @param fixed.params Logical vector of length `nparams` indicating which parameters are to be held fixed in the MCMC sampler.
+#' @param ncores If `model` is compiled with `OpenMP`, the number of cores to use for parallel processing.  Otherwise, uses `ncores = 1` and gives a warning.
 #' @param verbose Logical, whether to periodically output MCMC status.
-#' @details The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length \code{nparams + ndims}, or a named vector containing the elements defined by \code{sde.init$nvar.obs.m[1]} (the missing variables in the first SDE observation) and \code{fixed.params} (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are \code{.25 * |initial_value|} when \code{|initial_value| > 0}, and 1 otherwise.
+#' @details The Metropolis-within-Gibbs (MWG) jump sizes can be specified as a scalar, a vector or length `nparams + ndims`, or a named vector containing the elements defined by `sde.init$nvar.obs.m[1]` (the missing variables in the first SDE observation) and `fixed.params` (the SDE parameters which are not held fixed).  The default jump sizes for each MWG random variable are `.25 * |initial_value|` when `|initial_value| > 0`, and 1 otherwise.
 #'
-#' \code{adapt == TRUE} implements an adaptive MCMC proposal by Roberts and Rosenthal (2009).  At step \eqn{n} of the MCMC, the jump size of each MWG random variable is increased or decreased by \eqn{\delta(n)}, depending on whether the cumulative acceptance rate is above or below the optimal value of 0.44.  If \eqn{\sigma_n} is the size of the jump at step \eqn{n}, then the next jump size is determined by
+#' `adapt == TRUE` implements an adaptive MCMC proposal by Roberts and Rosenthal (2009).  At step \eqn{n} of the MCMC, the jump size of each MWG random variable is increased or decreased by \eqn{\delta(n)}, depending on whether the cumulative acceptance rate is above or below the optimal value of 0.44.  If \eqn{\sigma_n} is the size of the jump at step \eqn{n}, then the next jump size is determined by
 #' \deqn{
 #' \log(\sigma_{n+1}) = \log(\sigma_n) \pm \delta(n), \qquad \delta(n) = \min(.01, 1/n^{1/2}).
 #' }{
 #' log(sigma_(n+1)) = log(sigma_n) \pm delta(n), where delta(n) = min(.01, 1/n^(1/2)).
 #' }
-#' When \code{adapt} is not logical, it is a list with elements \code{max} and \code{rate}, such that \code{delta(n) = min(max, 1/n^rate)}.  These elements can be scalars or vectors in the same manner as \code{mwg.sd}.
+#' When `adapt` is not logical, it is a list with elements `max` and `rate`, such that `delta(n) = min(max, 1/n^rate)`.  These elements can be scalars or vectors in the same manner as `mwg.sd`.
 #'
-#' For SDE models with thousands of latent variables, \code{data.out} can be used to thin the MCMC missing data output.  An integer vector or scalar returns specific or evenly-spaced posterior samples from the \code{ncomp x ndims} complete data matrix.  A list with elements \code{isamples}, \code{icomp}, and \code{idims} determines which samples, time points, and SDE variables to return.  The first of these can be a scalar or vector with the same meaning as before.
+#' For SDE models with thousands of latent variables, `data.out` can be used to thin the MCMC missing data output.  An integer vector or scalar returns specific or evenly-spaced posterior samples from the `ncomp x ndims` complete data matrix.  A list with elements `isamples`, `icomp`, and `idims` determines which samples, time points, and SDE variables to return.  The first of these can be a scalar or vector with the same meaning as before.
 #' @return A list with elements:
 #' \describe{
-#'   \item{\code{params}}{An \code{nsamples x nparams} matrix of posterior parameter draws.}
-#'   \item{\code{data}}{A 3-d array of posterior missing data draws, for which the output dimensions are specified by \code{data.out}.}
-#'   \item{\code{init}}{The \code{sde.init} object which initialized the sampler.}
-#'   \item{\code{data.out}}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the \code{data} output.}
-#'   \item{\code{mwg.sd}}{A named vector of Metropolis-within-Gibbs standard devations used at the last posterior iteration.}
-#'   \item{\code{hyper}}{The hyperparameter specification.}
-#'   \item{\code{loglik}}{If \code{loglik.out == TRUE}, the vector of \code{nsamples} complete data loglikelihoods calculated at each posterior sample.}
-#'   \item{\code{last.iter}}{A list with elements \code{data} and \code{params} giving the last MCMC sample.  Useful for resuming the MCMC from that point.}
-#'   \item{\code{last.miss}}{If \code{last.miss.out == TRUE}, an \code{nsamples x nmissN} matrix of all posterior draws for the missing data in the final observation.  Useful for SDE forecasting at future timepoints.}
-#'   \item{\code{accept}}{A named list of acceptance rates for the various components of the MCMC sampler.}
+#'   \item{`params`}{An `nsamples x nparams` matrix of posterior parameter draws.}
+#'   \item{`data`}{A 3-d array of posterior missing data draws, for which the output dimensions are specified by `data.out`.}
+#'   \item{`init`}{The `sde.init` object which initialized the sampler.}
+#'   \item{`data.out`}{A list of three integer vectors specifying which timepoints, variables, and MCMC iterations correspond to the values in the `data` output.}
+#'   \item{`mwg.sd`}{A named vector of Metropolis-within-Gibbs standard devations used at the last posterior iteration.}
+#'   \item{`hyper`}{The hyperparameter specification.}
+#'   \item{`loglik`}{If `loglik.out == TRUE`, the vector of `nsamples` complete data loglikelihoods calculated at each posterior sample.}
+#'   \item{`last.iter`}{A list with elements `data` and `params` giving the last MCMC sample.  Useful for resuming the MCMC from that point.}
+#'   \item{`last.miss`}{If `last.miss.out == TRUE`, an `nsamples x nmissN` matrix of all posterior draws for the missing data in the final observation.  Useful for SDE forecasting at future timepoints.}
+#'   \item{`accept`}{A named list of acceptance rates for the various components of the MCMC sampler.}
 #' }
-#' @examples
-#' \donttest{
-#' # Posterior inference for Heston's model
-#' hmod <- sde.examples("hest") # load pre-compiled model
-#'
-#' # Simulate data
-#' X0 <- c(X = log(1000), Z = 0.1)
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#' dT <- 1/252
-#' nobs <- 1000
-#' hest.sim <- sde.sim(model = hmod, x0 = X0, theta = theta,
-#'                     dt = dT, dt.sim = dT/10, nobs = nobs)
-#'
-#' # initialize MCMC sampler
-#' # both components observed, no missing data between observations
-#' init <- sde.init(model = hmod, x = hest.sim$data,
-#'                  dt = hest.sim$dt, theta = theta)
-#'
-#' # Initialize posterior sampling argument
-#' nsamples <- 1e4
-#' burn <- 1e3
-#' hyper <- NULL # flat prior
-#' hest.post <- sde.post(model = hmod, init = init, hyper = hyper,
-#'                       nsamples = nsamples, burn = burn)
-#'
-#' # plot the histogram for the sampled parameters
-#' par(mfrow = c(2,3))
-#' for(ii in 1:length(hmod$param.names)) {
-#'   hist(hest.post$params[,ii],breaks=100, freq = FALSE,
-#'        main = parse(text = hmod$param.names[ii]), xlab = "")
-#' }
-#' }
-#' @references Roberts, G.O. and Rosenthal, J.S. "Examples of adaptive MCMC." \emph{Journal of Computational and Graphical Statistics} 18.2 (2009): 349-367. \url{http://www.probability.ca/jeff/ftpdir/adaptex.pdf}.
+#' @example examples/sde.post.R
+#' @references Roberts, G.O. and Rosenthal, J.S. "Examples of adaptive MCMC." *Journal of Computational and Graphical Statistics* 18.2 (2009): 349-367. <http://www.probability.ca/jeff/ftpdir/adaptex.pdf>.
 #' @export
 sde.post <- function(model, init, hyper,
                      nsamples, burn, mwg.sd = NULL, adapt = TRUE,
@@ -148,29 +117,28 @@ sde.post <- function(model, init, hyper,
 #  if(debug) browser()
   tm <- chrono()
   # compute
-  ans <- .sde_Post(sdeptr = model$ptr,
-                   initParams = as.double(init.params),
-                   initData = as.double(t(init.data)),
-                   dT = as.double(dt),
-                   nDimsPerObs = as.integer(par.index),
-                   fixedParams = as.logical(fixed.params),
-                   nSamples = as.integer(nsamples),
-                   burn = as.integer(burn),
-                   nParamsOut = as.integer(nparams.out),
-                   nDataOut = as.integer(ndata.out),
-                   dataOutSmp = as.integer(data.out$isamples-1),
-                   dataOutComp = as.integer(data.out$icomp-1),
-                   dataOutDims = as.integer(data.out$idims-1),
-                   updateParams = as.double(update.params),
-                   updateData = as.double(update.data),
-                   priorArgs = prior,
-                   tunePar = tune.par,
-                   updateLogLik = as.integer(loglik.out),
-                   nLogLikOut = as.integer(ifelse(loglik.out, nsamples, 1)),
-                   updateLastMiss = as.integer(last.miss.out),
-                   nLastMissOut = as.integer(nlast.miss.out),
-                   nCores = as.integer(ncores),
-                   displayProgress = as.logical(verbose))
+  ans <- model$cobj$Post(initParams = as.double(init.params),
+                         initData = as.double(t(init.data)),
+                         dT = as.double(dt),
+                         nDimsPerObs = as.integer(par.index),
+                         fixedParams = as.logical(fixed.params),
+                         nSamples = as.integer(nsamples),
+                         burn = as.integer(burn),
+                         nParamsOut = as.integer(nparams.out),
+                         nDataOut = as.integer(ndata.out),
+                         dataOutSmp = as.integer(data.out$isamples-1),
+                         dataOutComp = as.integer(data.out$icomp-1),
+                         dataOutDims = as.integer(data.out$idims-1),
+                         updateParams = as.double(update.params),
+                         updateData = as.double(update.data),
+                         priorArgs = prior,
+                         tunePar = tune.par,
+                         updateLogLik = as.integer(loglik.out),
+                         nLogLikOut = as.integer(ifelse(loglik.out, nsamples, 1)),
+                         updateLastMiss = as.integer(last.miss.out),
+                         nLastMissOut = as.integer(nlast.miss.out),
+                         nCores = as.integer(ncores),
+                         displayProgress = as.logical(verbose))
   tm <- chrono(tm, display = verbose)
   names(ans) <- c("paramsOut", "dataOut", "paramAccept", "gibbsAccept",
                   "logLikOut", "lastMissOut", "lastIter", "mwgSd")
@@ -327,6 +295,7 @@ sde.post <- function(model, init, hyper,
   nparams <- length(param.names)
   accept <- NULL
   if(update.data) {
+    # eraker proposals
     accept <- c(accept, list(data = bb.accept[-1]/nsamples))
     bb.acc <- accept$data[par.index[-1] < ndims]*100
     bb.acc <- signif(c(min(bb.acc), mean(bb.acc)), 3)
@@ -336,6 +305,7 @@ sde.post <- function(model, init, hyper,
     }
   }
   if(update.params) {
+    # parameter proposals
     accept <- c(accept, list(params = vnl.accept[1:nparams]/nsamples))
     if(verbose) {
       for(ii in which(!fixed.params)) {
@@ -346,8 +316,11 @@ sde.post <- function(model, init, hyper,
   }
   nmiss0 <- ndims-par.index[1]
   if(update.data && (nmiss0 > 0)) {
-    accept <- c(accept,
-                list(miss0 = vnl.accept[nparams+(1:nmiss0)]/nsamples))
+    # initial missing data proposals
+    accept <- c(
+      accept,
+      list(miss0 = vnl.accept[nparams+par.index[1] + (1:nmiss0)]/nsamples)
+    )
     if(verbose) {
       for(ii in 1:nmiss0) {
         message(data.names[par.index[1] + ii], "0 accept: ",

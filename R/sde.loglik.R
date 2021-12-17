@@ -1,33 +1,16 @@
 #' SDE loglikelihood function.
 #'
 #' Evaluates the loglikelihood function given SDE data and parameter values.
-#' @param model An \code{sde.model} object.
-#' @param x A matrix or 3-d array of data with \code{dim(x)[1]} observations and \code{dim(x)[2] == ndims}.
-#' @param dt A scalar or vector of length \code{dim(x)[1]-1} of time intervals between observations.
-#' @param theta A vector or matrix of parameters with \code{nparams} columns.
-#' @param ncores If \code{model} is compiled with \code{OpenMP}, the number of cores to use for parallel processing.  Otherwise, uses \code{ncores = 1} and gives a warning.
-#' @return A vector of loglikelihood evaluations, of the same length as the  third dimension of \code{x} and/or first dimension of \code{theta}.  If input contains invalid data or parameters an error is thrown.
-#' @examples
-#' # load Heston's model
-#' hmod <- sde.examples("hest")
 #'
-#' # Simulate data
-#' nreps <- 10
-#' nobs <- 100
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#' Theta <- apply(t(replicate(nreps, theta)), 2, jitter)
-#' x0 <- c(X = log(1000), Z = 0.1)
-#' X0 <- apply(t(replicate(nreps,x0)), 2, jitter)
-#' dT <- 1/252
-#' hsim <- sde.sim(model = hmod, x0 = X0, theta = Theta,
-#'                 dt = dT, dt.sim = dT/10, nobs = nobs, nreps = nreps)
+#' @param model An `sde.model` object.
+#' @param x A matrix or 3-d array of data with `dim(x)[1]` observations and `dim(x)[2] == ndims`.
+#' @param dt A scalar or vector of length `dim(x)[1]-1` of time intervals between observations.
+#' @param theta A vector or matrix of parameters with `nparams` columns.
+#' @param ncores If `model` is compiled with `OpenMP`, the number of cores to use for parallel processing.  Otherwise, uses `ncores = 1` and gives a warning.
 #'
-#' # single parameter, single data
-#' sde.loglik(model = hmod, x = hsim$data[,,1], dt = dT, theta = theta)
-#' # multiple parameters, single data
-#' sde.loglik(model = hmod, x = hsim$data[,,1], dt = dT, theta = Theta)
-#' # multiple parameters, multiple data
-#' sde.loglik(model = hmod, x = hsim$data, dt = dT, theta = Theta)
+#' @return A vector of loglikelihood evaluations, of the same length as the  third dimension of `x` and/or first dimension of `theta`.  If input contains invalid data or parameters an error is thrown.
+#'
+#' @example examples/sde.loglik.R
 #' @export
 sde.loglik <- function(model, x, dt, theta, ncores = 1) {
   if(class(model) != "sde.model") {
@@ -71,12 +54,12 @@ sde.loglik <- function(model, x, dt, theta, ncores = 1) {
     stop("x contains invalid sde data.")
   }
   # compute
-  .sde_Loglik(sdeptr = model$ptr,
-              xIn = as.double(x), dTIn = as.double(dt),
-              thetaIn = as.double(theta),
-              nComp = as.integer(ncomp),
-              nReps = as.integer(nreps),
-              singleX = as.logical(single.x),
-              singleTheta = as.logical(single.theta),
-              nCores = as.integer(ncores))
+  model$cobj$Loglik(xIn = as.double(x),
+                    dTIn = as.double(dt),
+                    thetaIn = as.double(theta),
+                    nComp = as.integer(ncomp),
+                    nReps = as.integer(nreps),
+                    singleX = as.logical(single.x),
+                    singleTheta = as.logical(single.theta),
+                    nCores = as.integer(ncores))
 }

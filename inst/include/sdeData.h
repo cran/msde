@@ -1,47 +1,47 @@
+/// @file sdeData.h
+
 #ifndef sdeData_h
 #define sdeData_h 1
 
 /// Hold data for an SDE model.
 ///
-/// Creates space for the data itself, timepoints,
-/// and storage space for mean/variance and normal likelihood evaluations.
+/// Creates space for the data itself, timepoints, and storage space for mean/variance and normal likelihood evaluations.
 ///
-/// \note A lot of public members here should in fact be protected/private.  Also should use standard setter/getter for extraction.
-
+/// @note A lot of public members here should in fact be protected/private.  Also should use standard setter/getter for extraction.
 template <class sMod>
 class sdeData {
  private:
-  /// allocate dynamic memory (used by constructors)
+  /// Allocate dynamic memory (used by constructors).
   void ctor_init(int ncomp, int nmv, int nz, int nsde);
  protected:
-  int nDims2; ///< number of variance dimensions
+  int nDims2; ///< Number of variance dimensions.
  public:
-  int nDims; ///< number of dimensions (get from sMod)
-  int nParams; ///< number of parameters (get from sMod)
-  int nComp; ///< number of (complete data) observations
-  double *dT; ///< array of interobservation times (length nComp-1)
-  double *sqrtDT; ///< array of sqrt(dT)
-  // double *XComp; ///< complete data
-  int *nObsComp; ///< number of observed dimensions per observation
-  double *propMean; ///< storage for sde means
-  double *propSd; ///< storage for sde variances (in sd form)
-  sMod *sde; ///< storage for drift/diffusion calculations
-  double *propZ; ///< storage for normal likelihoods
-  /// constructor
+  int nDims; ///< Number of dimensions (get from sMod).
+  int nParams; ///< Number of parameters (get from sMod).
+  int nComp; ///< Number of (complete data) observations.
+  double *dT; ///< Array of interobservation times (length nComp-1).
+  double *sqrtDT; ///< Array of sqrt(dT).
+  // double *XComp; ///< Complete data.
+  int *nObsComp; ///< Number of observed dimensions per observation.
+  double *propMean; ///< Storage for SDE means.
+  double *propSd; ///< Storage for SDE variances (in sd form).
+  sMod *sde; ///< Storage for drift/diffusion calculations.
+  double *propZ; ///< Storage for normal likelihoods.
+  /// Constructor.
   sdeData(int ncomp, double *dt, int nmv, int nz, int nsde);
+  /// Constructor with missing data information.
   sdeData(int ncomp, double *dt, int *nobscomp, int nmv, int nz, int nsde);
-  /// default constructor
+  /// Default constructor.
   sdeData();
-  /// destructor
+  /// Destructor.
   ~sdeData();
 };
 
 
-/// \param nc number of (complete data observations)
-/// \param dt array of interobservation times
-/// \param nmv number of mean/variance units to store
-/// \param nz number of additional z vectors to store
-/// \param nsde number of sdeModel objects to store
+/// @param[in] ncomp Number of complete data observations.
+/// @param[in] nmv Number of mean/variance units to store.
+/// @param[in] nz Number of additional `z` vectors to store.
+/// @param[in] nsde Number of `sMod` objects to store.
 template <class sMod>
 inline void sdeData<sMod>::ctor_init(int ncomp, int nmv, int nz, int nsde) {
   nDims = sMod::nDims;
@@ -60,11 +60,11 @@ inline void sdeData<sMod>::ctor_init(int ncomp, int nmv, int nz, int nsde) {
   return;
 }
 
-/// \param nc number of (complete data observations)
-/// \param dt array of interobservation times
-/// \param nmv number of mean/variance units to store
-/// \param nz number of additional z vectors to store
-/// \param nsde number of sdeModel objects to store
+/// @param[in] ncomp Number of complete data observations.
+/// @param[in] dt Array of interobservation times.
+/// @param[in] nmv Number of mean/variance units to store.
+/// @param[in] nz Number of additional z vectors to store.
+/// @param[in] nsde Number of sdeModel objects to store.
 template <class sMod>
 inline sdeData<sMod>::sdeData(int ncomp, double *dt,
 			      int nmv, int nz, int nsde) {
@@ -76,12 +76,12 @@ inline sdeData<sMod>::sdeData(int ncomp, double *dt,
   }
 }
 
-/// \param nc number of (complete data observations)
-/// \param dt array of interobservation times
-/// \param nobscomp number of observed sde components per time point
-/// \param nmv number of mean/variance units to store
-/// \param nz number of additional z vectors to store
-/// \param nsde number of sdeModel objects to store
+/// @param[in] ncomp Number of complete data observations.
+/// @param[in] dt Array of interobservation times.
+/// @param[in] nobscomp Number of observed sde components per time point.
+/// @param[in] nmv Number of mean/variance units to store.
+/// @param[in] nz Number of additional `z` vectors to store.
+/// @param[in] nsde Number of `sMod` objects to store.
 template <class sMod>
 inline sdeData<sMod>::sdeData(int ncomp, double *dt, int *nobscomp, 
 			      int nmv, int nz, int nsde) {
@@ -99,7 +99,7 @@ inline sdeData<sMod>::sdeData(int ncomp, double *dt, int *nobscomp,
   // }
 }
 
-/// Default constructor allocates a single unit to each memory variable. 
+/// The default constructor allocates a single unit to each memory variable. 
 template <class sMod>
 inline sdeData<sMod>::sdeData() {
   ctor_init(1, 1, 1, 1);
@@ -107,7 +107,6 @@ inline sdeData<sMod>::sdeData() {
 
 template <class sMod>
 inline sdeData<sMod>::~sdeData() {
-  // delete [] XComp;
   delete [] nObsComp;
   delete [] sde;
   delete [] propMean;

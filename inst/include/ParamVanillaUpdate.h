@@ -1,10 +1,15 @@
+/// @file ParamVanillaUpdate.h
+
 #ifndef ParamVanillaUpdate_h
 #define ParamVanillaUpdate_h 1
 
 #include "rngUtils.h"
 #include "sdeMCMC.h"
 
-// componentwise vanilla MH parameter updates
+/// Update `currParams` with new MCMC iteration.
+///
+/// @param[in] jumpSd Array of `nParams + nDims - nObsPerDim[0]` random walk jump sizes.  Only the first `nParams` are used.
+/// @param[in,out] paramAccept Array of `nParams` integers, each of which gets incremented by 1 if the proposal is accepted.
 template <class sMod, class sPi>
   inline void sdeMCMC<sMod, sPi>::paramVanillaUpdate(double *jumpSd,
 						     int *paramAccept) {

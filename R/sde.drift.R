@@ -1,24 +1,14 @@
 #' SDE drift function.
 #'
 #' Computes the SDE model's drift function given data and parameter values.
-#' @param model An \code{sde.model} object.
-#' @param x A vector or matrix of data with \code{ndims} columns.
-#' @param theta A vector or matrix of parameters with \code{nparams} columns.
-#' @return A matrix with \code{ndims} columns containing the drift function evaluated at \code{x} and \code{theta}.  If either input contains invalid SDE data or parameters an error is thrown.
-#' @examples
-#' # load Heston's model
-#' hmod <- sde.examples("hest")
 #'
-#' # single input
-#' x0 <- c(X = log(1000), Z = 0.1)
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#' sde.drift(model = hmod, x = x0, theta = theta)
+#' @param model An `sde.model` object.
+#' @param x A vector or matrix of data with `ndims` columns.
+#' @param theta A vector or matrix of parameters with `nparams` columns.
 #'
-#' # multiple inputs
-#' nreps <- 10
-#' Theta <- apply(t(replicate(nreps,theta)),2,jitter)
-#' X0 <- apply(t(replicate(nreps,x0)),2,jitter)
-#' sde.drift(model = hmod, x = X0, theta = Theta)
+#' @return A matrix with `ndims` columns containing the drift function evaluated at `x` and `theta`.  If either input contains invalid SDE data or parameters an error is thrown.
+#'
+#' @example examples/sde.drift.R
 #' @export
 sde.drift <- function(model, x, theta) {
   if(class(model) != "sde.model") {
@@ -43,10 +33,10 @@ sde.drift <- function(model, x, theta) {
   if(!all(.is.valid.data(model, x, theta, single.x, single.theta, nreps))) {
     stop("x contains invalid sde data.")
   }
-  dr <- .sde_Drift(sdeptr = model$ptr, xIn = as.double(x),
-                   thetaIn = as.double(theta),
-                   singleX = as.logical(single.x),
-                   singleTheta = as.logical(single.theta),
-                   nReps = as.integer(nreps))
+  dr <- model$cobj$Drift(xIn = as.double(x),
+                         thetaIn = as.double(theta),
+                         singleX = as.logical(single.x),
+                         singleTheta = as.logical(single.theta),
+                         nReps = as.integer(nreps))
   matrix(dr, nrow = nreps, ncol = model$ndims, byrow = TRUE)
 }

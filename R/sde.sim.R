@@ -1,13 +1,13 @@
 #' Simulation of multivariate SDE trajectories.
 #'
 #' Simulates a discretized Euler-Maruyama approximation to the true SDE trajectory.
-#' @param model An \code{sde.model} object.
-#' @param x0 A vector or a matrix of size \code{nreps x ndims} of the SDE values at time 0.
-#' @param theta A vector or matrix of size \code{nreps x nparams} of SDE parameters.
+#' @param model An `sde.model` object.
+#' @param x0 A vector or a matrix of size `nreps x ndims` of the SDE values at time 0.
+#' @param theta A vector or matrix of size `nreps x nparams` of SDE parameters.
 #' @param dt Scalar interobservation time.
-#' @param dt.sim Scalar interobservation time for simulation.  That is, interally the interobservation time is \code{dt.sim} but only one out of every \code{dt/dt.sim} simulation steps is kept in the output.
+#' @param dt.sim Scalar interobservation time for simulation.  That is, interally the interobservation time is `dt.sim` but only one out of every `dt/dt.sim` simulation steps is kept in the output.
 #' @param nobs The number of SDE observations per trajectory to generate.
-#' @param burn Scalar burn-in value.  Either an integer giving the number of burn-in steps, or a value between 0 and 1 giving the fraction of burn-in relative to \code{nobs}.
+#' @param burn Scalar burn-in value.  Either an integer giving the number of burn-in steps, or a value between 0 and 1 giving the fraction of burn-in relative to `nobs`.
 #' @param nreps The number of SDE trajectories to generate.
 #' @param max.bad.draws The maximum number of times that invalid forward steps are proposed.  See Details.
 #' @param verbose Whether or not to display information on the simulation.
@@ -17,35 +17,15 @@
 #' }{
 #' Y_(t+1) ~ N(Y_t + dr(Y_t, \theta) dt_(sim), df(Y_t, \theta) dt_(sim)),
 #'}
-#' where \eqn{\mathrm{dr}(y, \theta)}{dr(y, \theta)} is the SDE drift function and \eqn{\mathrm{df}(y, \theta)}{df(y, \theta)} is the diffusion function on the \strong{variance} scale.  At each step, a while-loop is used until a valid SDE draw is produced.  The simulation algorithm terminates after \code{nreps} trajectories are drawn or once a total of \code{max.bad.draws} are reached.
+#' where \eqn{\mathrm{dr}(y, \theta)}{dr(y, \theta)} is the SDE drift function and \eqn{\mathrm{df}(y, \theta)}{df(y, \theta)} is the diffusion function on the **variance** scale.  At each step, a while-loop is used until a valid SDE draw is produced.  The simulation algorithm terminates after `nreps` trajectories are drawn or once a total of `max.bad.draws` are reached.
 #' @return A list with elements:
 #' \describe{
-#'   \item{\code{data}}{An array of size \code{nobs x ndims x nreps} containing the simulated SDE trajectories.}
-#'   \item{\code{params}}{The vector or matrix of parameter values used to generate the data.}
-#'   \item{\code{dt, dt.sim}}{The actual and internal interobservation times.}
-#'   \item{\code{nbad}}{The total number of bad draws.}
+#'   \item{`data`}{An array of size `nobs x ndims x nreps` containing the simulated SDE trajectories.}
+#'   \item{`params`}{The vector or matrix of parameter values used to generate the data.}
+#'   \item{`dt, dt.sim`}{The actual and internal interobservation times.}
+#'   \item{`nbad`}{The total number of bad draws.}
 #' }
-#' @examples
-#' # load pre-compiled model
-#' hmod <- sde.examples("hest")
-#'
-#' # initial values
-#' x0 <- c(X = log(1000), Z = 0.1)
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#'
-#' # simulate data
-#' dT <- 1/252
-#' nobs <- 2000
-#' burn <- 500
-#' hsim <- sde.sim(model = hmod, x0 = x0, theta = theta,
-#'                 dt = dT, dt.sim = dT/10,
-#'                 nobs = nobs, burn = burn)
-#'
-#' par(mfrow = c(1,2))
-#' plot(hsim$data[,"X"], type = "l", xlab = "Time", ylab = "",
-#'      main = expression(X[t]))
-#' plot(hsim$data[,"Z"], type = "l", xlab = "Time", ylab = "",
-#'      main = expression(Z[t]))
+#' @example examples/sde.sim.R
 #' @export
 sde.sim <- function(model, x0, theta, dt, dt.sim,
                     nobs, burn = 0, nreps = 1,
@@ -87,18 +67,17 @@ sde.sim <- function(model, x0, theta, dt, dt.sim,
   }
 #  if(debug) browser()
   tm <- chrono()
-  ans <- .sde_Sim(sdeptr = model$ptr,
-                  nDataOut = as.integer(nobs*ndims*nreps),
-                  N = as.integer(nobs),
-                  burn = as.integer(burn),
-                  reps = as.integer(nreps),
-                  r = as.integer(rr),
-                  dT = as.double(dT),
-                  MAXBAD = as.integer(max.bad.draws),
-                  initData = as.double(x0),
-                  params = as.double(theta),
-                  singleX = as.logical(single.x),
-                  singleTheta = as.logical(single.theta))
+  ans <- model$cobj$Sim(nDataOut = as.integer(nobs*ndims*nreps),
+                        N = as.integer(nobs),
+                        burn = as.integer(burn),
+                        reps = as.integer(nreps),
+                        r = as.integer(rr),
+                        dT = as.double(dT),
+                        MAXBAD = as.integer(max.bad.draws),
+                        initData = as.double(x0),
+                        params = as.double(theta),
+                        singleX = as.logical(single.x),
+                        singleTheta = as.logical(single.theta))
   tm <- chrono(tm, display = verbose)
   names(ans) <- c("dataOut", "nBadDraws")
   if(verbose) message("Bad Draws = ", ans$nBadDraws)

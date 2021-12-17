@@ -1,20 +1,46 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="Martin Lysy, JunYong Tong, Nigel Delaney" />
 
-<meta name="date" content="2019-01-11" />
+<meta name="date" content="2021-12-16" />
 
 <title>Example SDE models provided by msde</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 
@@ -31,9 +57,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -202,8 +225,12 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
+
+
+
 
 </head>
 
@@ -213,8 +240,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 
 <h1 class="title toc-ignore">Example SDE models provided by <strong><code>msde</code></strong></h1>
-<h4 class="author"><em>Martin Lysy, JunYong Tong, Nigel Delaney</em></h4>
-<h4 class="date"><em>2019-01-11</em></h4>
+<h4 class="author">Martin Lysy, JunYong Tong, Nigel Delaney</h4>
+<h4 class="date">2021-12-16</h4>
 
 
 <div id="TOC">
@@ -228,10 +255,10 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 
 
-<p>This vignette contains a complete description of the sample models found in <code>msde::sde.examples</code>.</p>
+<p>This vignette contains a complete description of the sample models found in <code>msde::sde.examples()</code>.</p>
 <div id="hestons-stochastic-volatility-model" class="section level2">
 <h2>Heston’s stochastic volatility model</h2>
-<p>Let <span class="math inline">\(S_t\)</span> denote the value of a financial asset at time <span class="math inline">\(t\)</span>. Heston’s stochastic volatility model <span class="citation">(Heston <a href="#ref-heston93">1993</a>)</span> is given by the pair of stochastic differential equations <span class="math display">\[
+<p>Let <span class="math inline">\(S_t\)</span> denote the value of a financial asset at time <span class="math inline">\(t\)</span>. Heston’s stochastic volatility model <span class="citation">(Heston <a href="#ref-heston93" role="doc-biblioref">1993</a>)</span> is given by the pair of stochastic differential equations <span class="math display">\[
 \begin{split}
 \mathrm{d}S_t &amp; = \alpha S_t\mathrm{d}t + V_t^{1/2}S_t\mathrm{d}B_{1t} \\
 \mathrm{d}V_t &amp; = -\gamma(V_t - \mu)\mathrm{d}t + \sigma V_t^{1/2} \mathrm{d}B_{2t},
@@ -253,13 +280,13 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="lotka-volterra-predator-prey-model" class="section level2">
 <h2>Lotka-Volterra predator-prey model</h2>
-<p>Let <span class="math inline">\(H_t\)</span> and <span class="math inline">\(L_t\)</span> denote the number of Hare and Lynx at time <span class="math inline">\(t\)</span> coexisting in a given habitat. The Lotka-Volterra SDE describing the interactions between these two animal populations is given by <span class="citation">(Golightly and Wilkinson <a href="#ref-golightly-wilkinson10">2010</a>)</span>: <span class="math display">\[
+<p>Let <span class="math inline">\(H_t\)</span> and <span class="math inline">\(L_t\)</span> denote the number of Hare and Lynx at time <span class="math inline">\(t\)</span> coexisting in a given habitat. The Lotka-Volterra SDE describing the interactions between these two animal populations is given by <span class="citation">(Golightly and Wilkinson <a href="#ref-golightly-wilkinson10" role="doc-biblioref">2010</a>)</span>: <span class="math display">\[
 \begin{bmatrix} \mathrm{d} H_t \\ \mathrm{d} L_t \end{bmatrix} = \begin{bmatrix} \alpha H_t - \beta H_tL_t \\ \beta H_tL_t - \gamma L_t \end{bmatrix}\, \mathrm{d} t + \begin{bmatrix} \alpha H_t + \beta H_tL_t &amp; -\beta H_tL_t \\ -\beta H_tL_t &amp; \beta H_tL_t + \gamma L_t\end{bmatrix}^{1/2} \begin{bmatrix} \mathrm{d} B_{1t} \\ \mathrm{d} B_{2t} \end{bmatrix}.
 \]</span> The data and parameters are all restricted to be positive. This model is contained in <code>sde.examples(model = &quot;lotvol&quot;)</code>.</p>
 </div>
 <div id="prokaryotic-autoregulatory-gene-network-model" class="section level2">
 <h2>Prokaryotic autoregulatory gene network model</h2>
-<p>Let <span class="math inline">\(\boldsymbol{Y}_t = (R_t, P_t, Q_t, D_t)\)</span> denote the number of molecules at time <span class="math inline">\(t\)</span> of four different compounds in an autoregulatory gene network: RNA (<span class="math inline">\(R\)</span>); a functional protein (<span class="math inline">\(P\)</span>); protein dimmers (<span class="math inline">\(Q\)</span>); and DNA (<span class="math inline">\(D\)</span>). Then <span class="citation">Golightly and Wilkinson (<a href="#ref-golightly.wilkinson05">2005</a>)</span> define an SDE describing the dynamics of <span class="math inline">\(\boldsymbol{Y}_t\)</span> with drift and (variance-scale) diffusion functions <span class="math display">\[
+<p>Let <span class="math inline">\(\boldsymbol{Y}_t = (R_t, P_t, Q_t, D_t)\)</span> denote the number of molecules at time <span class="math inline">\(t\)</span> of four different compounds in an autoregulatory gene network: RNA (<span class="math inline">\(R\)</span>); a functional protein (<span class="math inline">\(P\)</span>); protein dimmers (<span class="math inline">\(Q\)</span>); and DNA (<span class="math inline">\(D\)</span>). Then <span class="citation">Golightly and Wilkinson (<a href="#ref-golightly.wilkinson05" role="doc-biblioref">2005</a>)</span> define an SDE describing the dynamics of <span class="math inline">\(\boldsymbol{Y}_t\)</span> with drift and (variance-scale) diffusion functions <span class="math display">\[
 \begin{split}
 \boldsymbol{\Lambda}_\boldsymbol{\theta}(\boldsymbol{Y}_t) &amp; =
 \begin{bmatrix}
@@ -276,7 +303,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 0 &amp; 0 &amp; A_t &amp; A_t
 \end{bmatrix},
 \end{split}
-\]</span> where <span class="math inline">\(A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)\)</span> and <span class="math inline">\(\boldsymbol{\theta}= (\theta _{1},\ldots,\theta _{8})\)</span>, <span class="math inline">\(\theta_i = \log(\gamma_i)\)</span>, are various reaction rates. The data and parameter restrictions for this model are <span class="math inline">\(\boldsymbol{\theta}\in \mathbb R^8\)</span>, <span class="math inline">\(\boldsymbol{Y}_t &gt; 1\)</span>, and <span class="math inline">\(D_t &lt; 10\)</span>. This model is contained in <code>sde.examples(model = &quot;pgnet&quot;)</code>.</p>
+\]</span> where <span class="math inline">\(A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)\)</span> and <span class="math inline">\(\boldsymbol{\theta}= (\theta_1, \ldots, \theta_8)\)</span>, <span class="math inline">\(\theta_i = \log(\gamma_i)\)</span>, are various reaction rates. The data and parameter restrictions for this model are <span class="math inline">\(\boldsymbol{\theta}\in \mathbb R^8\)</span>, <span class="math inline">\(\boldsymbol{Y}_t &gt; 1\)</span>, and <span class="math inline">\(D_t &lt; 10\)</span>. This model is contained in <code>sde.examples(model = &quot;pgnet&quot;)</code>.</p>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2>References</h2>
@@ -293,6 +320,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

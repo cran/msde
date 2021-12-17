@@ -1,30 +1,36 @@
-/////////////////////////////////////////
+/// @file pgnetModel.h
 
-#ifndef sdeModel_h
-#define sdeModel_h 1
+#ifndef pgnetModel_h
+#define pgnetModel_h 1
 
-/////////////////////////////////////////
-
-// Prokaryotic Autoregulatory Gene Network model
-// of Golightly-Wilkinson 2005
-
-// sde model object
+/// SDE model class for the prokaryotic autoregulatory gene network model of Golightly & Wilkinson (2005).
+///
+/// This is a 4-dimensional SDE with data vector `x = (Rt, Pt, Qt, Dt)` and 8-dimensional parameter vector `theta = (gamma1, ..., gamma8)`.  The complete model specification is given in `vignette("msde-exmodels")`.
 class sdeModel {
 private:
   double K, eps; // numerical constants (double so can't be static const)
  public:
-  static const int nParams = 8;
-  static const int nDims = 4;
-  static const bool sdDiff = true;
-  static const bool diagDiff = false;
+  static const int nParams = 8; ///< Number of model parameters.
+  static const int nDims = 4; ///< Number of SDE dimensions.
+  static const bool sdDiff = true; ///< Diffusion is on the standard deviation scale.
+  static const bool diagDiff = false; ///< Diffusion is not diagonal.
+  /// SDE drift function.
   void sdeDr(double *dr, double *x, double *theta);
+  /// SDE diffusion function.
   void sdeDf(double *df, double *x, double *theta);
+  /// SDE data validator.
   bool isValidData(double *x, double *theta);
+  /// SDE parameter validator.
   bool isValidParams(double *theta);
+  /// Constructor.
+  ///
+  /// The non-default constructor is used to set the values of `K` and `eps`.
   sdeModel() {K = 10.0; eps = 0.05;}
 };
 
-// drift function
+/// @param[out] dr Array into which to store the calculated drift.
+/// @param[in] x Array of SDE components at a given time point.
+/// @param[in] theta Array of SDE parameters.
 inline void sdeModel::sdeDr(double *dr, double *x, double *theta) {
   // double K = 10.0;
   dr[3] = exp(theta[1]) * (K - x[3]) - exp(theta[0]) * x[3] * x[2];
@@ -37,7 +43,9 @@ inline void sdeModel::sdeDr(double *dr, double *x, double *theta) {
   return;
 }
 
-// diffusion function
+/// @param[out] df Array into which to store the calculated diffusion matrix.
+/// @param[in] x Array of SDE components at a given time point.
+/// @param[in] theta Array of SDE parameters.
 inline void sdeModel::sdeDf(double *df, double *x, double *theta) {
   // double K = 10.0;
   df[0] = sqrt(exp(theta[2]) * x[3] + exp(theta[6]) * x[0]);
@@ -62,7 +70,10 @@ inline void sdeModel::sdeDf(double *df, double *x, double *theta) {
   return;
 }
 
-// data validator
+/// @param[in] x Array of SDE components at a given time point.
+/// @param[in] theta Array of SDE parameters.
+///
+/// @return Whether or not the SDE data `x` is valid.  In this case we must have `Rt, Pt, Qt, Dt > 1+eps` and `Qt < K-eps`.
 inline bool sdeModel::isValidData(double *x, double *theta) {
   bool isValid;
   // double K = 10.0;
@@ -74,7 +85,9 @@ inline bool sdeModel::isValidData(double *x, double *theta) {
   return(isValid);
 }
 
-// parameter validator
+/// @param[in] theta Array of SDE parameters.
+///
+/// @return Whether or not the SDE parameters `theta` are valid.  In this case all real valued parameter vectors are valid.
 inline bool sdeModel::isValidParams(double *theta) {
   return(true);
 }

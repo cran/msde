@@ -1,9 +1,11 @@
+/// @file sdeSim.h
+
 #ifndef sdeSim_h
 #define sdeSim_h
 
-// #include <Rcpp.h>
-//[[Rcpp::depends("RcppArmadillo")]]
-#include <RcppArmadillo.h>
+#include <Rcpp.h>
+// //[[Rcpp::depends("RcppArmadillo")]]
+// #include <RcppArmadillo.h>
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;
 typedef Rcpp::IntegerVector Integer;
@@ -11,8 +13,21 @@ typedef Rcpp::List List;
 //using namespace Rcpp;
 #include "rngUtils.h"
 #include "sdeUtils.h"
-#include "sdeInterface.h"
+#include "sdeRobj.h"
 
+/// @param[in] nDataOut Size of final data output.
+/// @param[in] N length of each SDE trajectory.
+/// @param[in] burn Number of initial time points to discard as burn-in.
+/// @param[in] reps Number of trajectories to simulate.
+/// @param[in] r Number of observations to discard between the ones that we save.  So for example, if `r=1` we keep all observations, if `r=10` we keep every 10.
+/// @param[in] dT Effective interobservation time.
+/// @param[in] MAXBAD Maximum number of invalid Euler-Maruyama steps before method terminates.
+/// @param[in] initData Vector of length `nDims` or `reps * nDims` giving the starting value of each trajectory.
+/// @param[in] params Vector of length `nParams` or `reps * nParams` giving the parameters for each trajectory.
+/// @param[in] singleX Whether or not `initData` is of length `nDims`.
+/// @param[in] singleTheta Whether or not `params` is of length `nParams`.
+///
+/// @return An `Rcpp::List` with elements `dataOut`, consisting of `reps * N * nDims` SDE observations, and `nBadDraws`, the number of bad Euler-Maruyama steps (total).  Note that `initData` is not included in the output.
 template <class sMod, class sPi>
   inline List sdeRobj<sMod, sPi>::Sim(int nDataOut,
 				      int N, int burn, int reps, int r,

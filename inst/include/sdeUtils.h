@@ -1,3 +1,5 @@
+/// @file sdeUtils.h
+
 #ifndef sdeUtils_h
 #define sdeUtils_h 1
 
@@ -9,7 +11,9 @@
 
 // --- xmvn, zmvn, llmvn -------------------------------------------------------
 
-// full version
+/// Calculate `x = sd * z + mean` where `sd` is specified by `sMod`.
+///
+/// Wrapper to pick between `xmvn_chol` or `xmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline void xmvn(double *x, double *z,
 		 double *mean, double *sd, int iFirst, int iLast) {
@@ -20,7 +24,10 @@ inline void xmvn(double *x, double *z,
   }
   return;
 }
-// reduced version
+
+/// Calculate `x = sd * z + mean` where `sd` is specified by `sMod`.
+///
+/// Simplified version with `iFirst = 0` and `iLast = sMod::nDims`.  Wrapper to pick between `xmvn_chol` or `xmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline void xmvn(double *x, double *z, double *mean, double *sd) {
   if(sMod::diagDiff) {
@@ -31,7 +38,9 @@ inline void xmvn(double *x, double *z, double *mean, double *sd) {
   return;
 }
 
-// full version
+/// Calculate `z = sd^{-1} * (x - mean)` where `sd` is specificed by `sMod`.
+///
+/// Wrapper to pick between `zmvn_chol` or `zmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline void zmvn(double *z, double *x,
 		      double *mean, double *sd, int iLast) {
@@ -42,7 +51,10 @@ inline void zmvn(double *z, double *x,
   }
   return;
 }
-// reduced version
+
+/// Calculate `z = sd^{-1} * (x - mean)` where `sd` is specificed by `sMod`.
+///
+/// Simplified version with `iLast = sMod::nDims`. Wrapper to pick between `zmvn_chol` or `zmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline void zmvn(double *z, double *x,
 		      double *mean, double *sd) {
@@ -54,25 +66,30 @@ inline void zmvn(double *z, double *x,
   return;
 }
 
-// full version
+/// Calculate the log-density of `x ~ N(mean, sd * sd')` where `sd` is specified by `sMod`.
+///
+/// Wrapper to pick between `lmvn_chol` or `lmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline double lmvn(double *x, double *z,
 		   double *mean, double *sd, int iLast) {
   double ld;
   if(sMod::diagDiff) {
-    ld = lmvn_diag(x, z, mean, sd, iLast);
+    ld = lmvn_diag(x, mean, sd, iLast);
   } else {
     ld = lmvn_chol(x, z, mean, sd, sMod::nDims, iLast);
   }
   return ld;
 }
-// reduced version
+
+/// Calculate the log-density of `x ~ N(mean, sd * sd')` where `sd` is specified by `sMod`.
+///
+/// Simplified version assuming that `iLast = sMod::nDims`.  Wrapper to pick between `lmvn_chol` or `lmvn_diag` depending on the diffusion specification of `sMod`.  See `mvnUtils.h`.
 template <class sMod>
 inline double lmvn(double *x, double *z,
 		   double *mean, double *sd) {
   double ld;
   if(sMod::diagDiff) {
-    ld = lmvn_diag(x, z, mean, sd, sMod::nDims);
+    ld = lmvn_diag(x, mean, sd, sMod::nDims);
   } else {
     ld = lmvn_chol(x, z, mean, sd, sMod::nDims);
   }
@@ -80,8 +97,12 @@ inline double lmvn(double *x, double *z,
 }
 
 
-// rescale diffusion depending on whether it's on the sd or variance scale
-// and diagonal or not.
+/// Scale a diffusion matrix by the interobservation time.
+///
+/// If `sMod::sdDiff = true`, multiply `df` by `sqrtDT`.  Otherwise, multiply `df` by `sqrtDT^2`.
+///
+/// @param[in,out] df SDE diffusion matrix on the scale specified by `sMod::sdDiff` and `sMod::diagDiff`.
+/// @param[in] sqrtDT Square-root of the interobservation time. 
 template <class sMod>
 inline void scaleDiff(double *df, double sqrtDT) {
   int ii;
@@ -107,7 +128,15 @@ inline void scaleDiff(double *df, double sqrtDT) {
   return;
 }
 
-// Euler approximation mean and variance
+/// Calculate the mean and variance of the Euler approximation.
+///
+/// @param[out] mean Array of length `n = sMod::nDims` giving the mean of the Euler approximation.
+/// @param[out] sd Array of length `n^2`giving the (upper) Cholesky factor of the variance when `sMod::diagDiff = false`, or a vector of length `n` giving the standard deviations of each component when `sMod::diagDiff = true`.
+/// @param[in] x Array of length `n` at which to evaluate the mean and variance.
+/// @param[in] dT Interobservation time.
+/// @param[in] sqrtDT Square-root of the interobservation time.
+/// @param[in] theta Array of parameter values.
+/// @param[in] sde Pointer to an `sMod` object which has methods to evaluate the SDE drift and diffusion functions.
 template <class sMod>
 inline void mvEuler(double *mean, double *sd,
 		    double *x, double dT, double sqrtDT,

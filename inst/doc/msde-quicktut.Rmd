@@ -1,5 +1,5 @@
 ---
-title: "Inference for Multivariate Stochastic Differential Equations with **`msde`**"
+title: "Inference for Multivariate Stochastic Differential Equations with **msde**"
 author: "Martin Lysy, JunYong Tong, Nigel Delaney"
 date: "`r Sys.Date()`"
 output:
@@ -38,7 +38,7 @@ vignette: >
 
 ## Introduction
 
-A $d$-dimensional stochastic differential equation (SDE) $\Y_t = (\rv [1t] Y {dt})$ is written as
+A $d$-dimensional stochastic differential equation (SDE) $\Y_t = (Y_{1t}, \ldots, Y_{dt})$ is written as
 $$
 \ud \Y_t = \dr_{\tth}(\Y_t)\,\ud t + \df_{\tth}(\Y_t)^{1/2}\,\ud \B_t,
 $$
@@ -46,7 +46,7 @@ where $\dr_{\tth}(\y)$ and $\df_{\tth}(\y)$ are the drift and diffusion function
 <!-- $$ -->
 <!-- \dr_{\tth}(\y) = \lim_{\dt \to 0} \frac{E[\Y_{t+\dt} - \Y_t \mid \Y_t = \y]}{\dt}, \qquad \df_{\tth}(\y) = \lim_{\dt \to 0} \frac{\var(\Y_{t+\dt} - \Y_t \mid \Y_t = \y)}{\dt}, -->
 <!-- $$ -->
-and $\B_t = (\rv [1t] B {dt})$ is $d$-dimensional Brownian motion.  The **`msde`** package implements a Markov Chain Monte Carlo (MCMC) algorithm to sample from the posterior distribution $p(\tth \mid \Y)$ of the parameters given discrete observations $\Y = (\rv [0] {\Y} N)$ recorded at times $\rv [0] t N$, with some of the $d$ components of $\Y_t$ possibly latent.  To do this efficiently, **`msde`** requires on-the-fly **C++** compiling of user-specified models.  Instructions for setting up **R** to compile **C++** code are provided in the [Installation](#install) section.
+and $\B_t = (B_{1t}, \ldots, B_{dt})$ is $d$-dimensional Brownian motion.  The **msde** package implements a Markov Chain Monte Carlo (MCMC) algorithm to sample from the posterior distribution $p(\tth \mid \Y)$ of the parameters given discrete observations $\Y = (\Y_0, \ldots, \Y_N)$ recorded at times $t_0, \ldots, t_N$, with some of the $d$ components of $\Y_t$ possibly latent.  To do this efficiently, **msde** requires on-the-fly C++ compiling of user-specified models.  Instructions for setting up R to compile C++ code are provided in the [Installation](#install) section.
 
 ## Creating an `sde.model` object
 
@@ -58,7 +58,8 @@ Thus we have $d = 2$, $\Y_t = (H_t, L_t)$, and $\tth = (\a, \b, \g)$.
 
 ### The `sdeModel` class definition
 
-In order to build this model in **C++**, we create a header file `lotvolModel.h` containing the class definition for an `sdeModel` object.  The basic structure of this class is given below:
+In order to build this model in C++, we create a header file `lotvolModel.h` containing the class definition for an `sdeModel` object.  The basic structure of this class is given below:
+
 ```{Rcpp, eval = FALSE}
 // sde model object
 class sdeModel {
@@ -77,24 +78,28 @@ The meaning of each class member is as follows:
 
 * `nParams`: The number of model parameters.  For the Lotka-Volterra model we have $\tth = (\a, \b, \g)$, such that `nParams = 3`.
 * `nDims`: The number of dimensions in the multivariate SDE.  In this case we have $\Y_t = (H_t, L_t)$, such that `nDims = 2`.
-* `sdeDr`: The SDE drift function.  In **R**, this function would be implemented as
-    ```{r, eval = FALSE}
+* `sdeDr`: The SDE drift function.  In R, this function would be implemented as
+
+```{r, indent = "    ", eval = FALSE}
 sde.drift <- function(x, theta) {
   dr <- c(theta[1]*x[1] - theta[2]*x[1]*x[2], # alpha * H - beta * H*L
           theta[2]*x[1]*x[2] - theta[3]*x[2]) # beta * H*L - gamma * L
   dr
 }
 ```
-    In **C++** the same thing is accomplished with
-    ```{Rcpp, eval = FALSE}
+    In C++ the same thing is accomplished with
+
+```{Rcpp, indent = "    ", eval = FALSE}
 void sdeDr(double *dr, double *x, double *theta) {
   dr[0] = theta[0]*x[0] - theta[1]*x[0]*x[1]; // alpha * H - beta * H * L
   dr[1] = theta[1]*x[0]*x[1] - theta[2]*x[1]; // beta * H * L - gamma * L
   return;
 }
 ```
-* `sdeDf`: The SDE diffusion function.  This can be specified on the standard deviation scale, or on the variance scale as above.  In this case, an **R** implementation would be
-    ```{r, eval = FALSE}
+
+* `sdeDf`: The SDE diffusion function.  This can be specified on the standard deviation scale, or on the variance scale as above.  In this case, an R implementation would be
+
+```{r, indent = "    ", eval = FALSE}
 sde.diff <- function(x, theta) {
   df <- matrix(NA, 2, 2)
   df[1,1] <- theta[1]*x[1] + theta[2]*x[1]*x[2] # alpha * H + beta * H*L
@@ -104,8 +109,10 @@ sde.diff <- function(x, theta) {
   df
 }
 ```
-    In **C++** the specification is slightly different.  First we set `sdDiff = false` in order to tell **`msde`** to use the variance scale.  Next, the diffusion function is coded as
-    ```{Rcpp, eval = FALSE}
+    
+	In C++ the specification is slightly different.  First we set `sdDiff = false` in order to tell **msde** to use the variance scale.  Next, the diffusion function is coded as
+
+```{Rcpp, indent = "    ", eval = FALSE}
 void sdeDf(double *df, double *x, double *theta) {
   df[0] = theta[0]*x[0] + theta[1]*x[0]*x[1]; // matrix element (1,1)
   df[2] = -theta[1]*x[0]*x[1]; // element (1,2)
@@ -113,14 +120,17 @@ void sdeDf(double *df, double *x, double *theta) {
   return;
 }
 ```
-    Thus there are two major differences with the **R** version.  The first is that the `df` matrix is stored as a vector (or "array" in **C++**).  Its elements are stored in column-major order, i.e., by stacking the columns one after the other into one long vector.  The second difference is that **`msde`** only uses the *upper triangular* portion of the (symmetric) matrix $\df_{\tth}(\y)$.  The elements below the diagonal can be set to any value or not set at all without affecting the computations.
+    Thus there are two major differences with the R version.  The first is that the `df` matrix is stored as a vector (or "array" in C++).  Its elements are stored in column-major order, i.e., by stacking the columns one after the other into one long vector.  The second difference is that **msde** only uses the *upper triangular* portion of the (symmetric) matrix $\df_{\tth}(\y)$.  The elements below the diagonal can be set to any value or not set at all without affecting the computations.
 
-	**`msde`** internally computes the Cholesky decomposition of the diffusion function when it is specified on the variance scale.  For small problems such as this one, it is more efficient to specify the Cholesky decomposition directly, i.e., specify the diffusion on the standard deviation scale.  In this case, the Cholesky decomposition of the diffusion function is
-$$
-\begin{bmatrix} \a H_t + \b H_tL_t & -\b H_tL_t \\ -\b H_tL_t & \b H_tL_t + \g L_t\end{bmatrix}^{1/2} = \begin{bmatrix} \sqrt{\a H_t + \b H_tL_t} & -\frac{\b H_tL_t}{\sqrt{\a H_t + \b H_tL_t}} \\ 0 & \sqrt{\b H_tL_t + \g L_t - \frac{(\b H_tL_t)^2}{\a H_t + \b H_tL_t}} \end{bmatrix},
-$$
-which is passed to **`msde`** by setting `sdDiff = true` and
-    ```{Rcpp, eval = FALSE}
+	**msde** internally computes the Cholesky decomposition of the diffusion function when it is specified on the variance scale.  For small problems such as this one, it is more efficient to specify the Cholesky decomposition directly, i.e., specify the diffusion on the standard deviation scale.  In this case, the Cholesky decomposition of the diffusion function is
+
+    $$
+    \begin{bmatrix} \a H_t + \b H_tL_t & -\b H_tL_t \\ -\b H_tL_t & \b H_tL_t + \g L_t\end{bmatrix}^{1/2} = \begin{bmatrix} \sqrt{\a H_t + \b H_tL_t} & -\frac{\b H_tL_t}{\sqrt{\a H_t + \b H_tL_t}} \\ 0 & \sqrt{\b H_tL_t + \g L_t - \frac{(\b H_tL_t)^2}{\a H_t + \b H_tL_t}} \end{bmatrix},
+    $$
+
+    which is passed to **msde** by setting `sdDiff = true` and
+
+```{Rcpp, indent = "    ", eval = FALSE}
 void sdeDf(double *df, double *x, double *theta) {
   double bHL = theta[1]*x[0]*x[1]; // beta * H*L
   df[0] = sqrt(theta[0]*x[0] + bHL); // sqrt(alpha * H + bHL)
@@ -129,12 +139,16 @@ void sdeDf(double *df, double *x, double *theta) {
   return;
 }
 ```
+
 * `diagDiff`: A logical specifying whether or not the diffusion matrix $\df_\tth(\y)$ is diagonal.  For the Lotka-Volterra SDE model above, we set `diagDiff = false`.  However, if the diffusion function were of the form
-$$
-\df_\tth(\Y_t) = \begin{bmatrix} \a H_t + \b H_tL_t & 0 \\ 0 & \b H_tL_t + \g L_t\end{bmatrix},
-$$
-then we would set `diagDiff = true`, **and importantly**, treat the `df` argument of `sdeDf` directly as the diagonal elements of the diffusion matrix.  That is, the diffusion (on the variance scale) is encoded as
-    ```{Rcpp, eval = FALSE}
+
+    $$
+	\df_\tth(\Y_t) = \begin{bmatrix} \a H_t + \b H_tL_t & 0 \\ 0 & \b H_tL_t + \g L_t\end{bmatrix},
+	$$
+
+	then we would set `diagDiff = true`, **and importantly**, treat the `df` argument of `sdeDf` directly as the diagonal elements of the diffusion matrix.  That is, the diffusion (on the variance scale) is encoded as
+
+```{Rcpp, indent = "    ", eval = FALSE}
 void sdeDf(double *df, double *x, double *theta) {
   double bHL = theta[1]*x[0]*x[1]; // beta * H*L
   df[0] = theta[0]*x[0] + bHL; // alpha * H + bHL
@@ -143,8 +157,12 @@ void sdeDf(double *df, double *x, double *theta) {
   return;
 }
 ```
+
+	**NOTE:** The **msde** C++ library does not initialize output pointers `df` and `dr`.  So, if these contain zeros they must be assigned explicitly.
+
 * `isValidParams`: A logical used to specify the parameter support.  In this case we have $\a, \b, \g > 0$, such that
-    ```{Rcpp, eval = FALSE}
+
+```{Rcpp, indent = "    ", eval = FALSE}
 bool isValidParams(double *theta) {
   bool val = theta[0] > 0.0;
   val = val && theta[1] > 0.0;
@@ -152,14 +170,17 @@ bool isValidParams(double *theta) {
   return val;
 }
 ```
+
 * `isValidData`: A logical used to specify the SDE support, which can be parameter-dependent.  In this case we simply have $H_t, L_t > 0$, such that
-    ```{Rcpp, eval = FALSE}
+
+```{Rcpp, indent = "    ", eval = FALSE}
 bool isValidData(double *x, double *theta) {
   return (x[0] > 0.0) && (x[1] > 0.0);
 }
 ```
 
 Thus the whole file `lotvolModel.h` is given below:
+
 ```{Rcpp, eval = FALSE}
 #ifndef sdeModel_h
 #define sdeModel_h 1
@@ -210,15 +231,17 @@ inline bool sdeModel::isValidData(double *x, double *theta) {
 
 #endif
 ```
+
 The additions to the previous code sections are:
 
 1. The header include guards (`#ifndef`/`#define`/`#endif`).
 2. The `sdeModel::` identifier is prepended to the class member definitions when these are written outside of the class declaration itself.
-3. The `inline` keyword before the class member definitions, both of which ensure that only one instance of these functions is passed to the **C++** compiler.
+3. The `inline` keyword before the class member definitions, both of which ensure that only one instance of these functions is passed to the C++ compiler.
 
 ### Compiling and checking the `sde.model` object
 
-One the `sdeModel` class is created as the **C++** level, it is compiled in **R** using the following commands:
+One the `sdeModel` class is created as the C++ level, it is compiled in R using the following commands:
+
 ```{r}
 require(msde)
 
@@ -229,7 +252,8 @@ lvmod <- sde.make.model(ModelFile = "lotvolModel.h",
                         data.names = data.names,
                         param.names = param.names)
 ```
-Before using the model for inference, it is useful to make sure that the **C++** entrypoints are error-free.  To facilitate this, **`msde`** provides **R** wrappers to the internal **C++** drift, diffusion, and validator functions, which can then be checked against **R** versions as follows:
+Before using the model for inference, it is useful to make sure that the C++ entrypoints are error-free.  To facilitate this, **msde** provides R wrappers to the internal C++ drift, diffusion, and validator functions, which can then be checked against R versions as follows:
+
 ```{r}
 # helper functions
 
@@ -318,12 +342,15 @@ c(x = all(x.R == x.cpp), theta = all(theta.R == theta.cpp))
 ## Simulating trajectories from the Lotka-Volterra model
 
 The basis for both simulation and inference with SDEs is the Euler-Maruyama approximation [@maruyama55], which states that over a small time interval $\dt$, the (intractable) transition density of the SDE can be approximated by
+
 $$
 \Y_{t+\dt} \mid \Y_t \approx \N\Big(\Y_t + \dr_\tth(\Y_t)\dt, \df_\tth(\Y_t)\dt\Big),
 $$
+
 with convergence to the true SDE dynamics as $\dt \to 0$.
 
-In order to simulate data from the Lotka-Volterra SDE model, we use the function `sde.sim`.  Here we'll generate $N = 50$ observations of the process with initial values $\Y_0 = (71, 79)$, and parameter values $\tth = (.5, .0025,.3)$, with time between observations of $\dt = 1$ year.  The `dt.sim` argument to `sde.sim` specifies the internal observation time used by the Euler-Maruyama approximation.
+In order to simulate data from the Lotka-Volterra SDE model, we use the function `sde.sim()`.  Here we'll generate $N = 50$ observations of the process with initial values $\Y_0 = (71, 79)$, and parameter values $\tth = (.5, .0025,.3)$, with time between observations of $\dt = 1$ year.  The `dt.sim` argument to `sde.sim()` specifies the internal observation time used by the Euler-Maruyama approximation.
+
 ```{r, fig.width = 10, fig.height = 5, out.width = "90%"}
 
 # simulation parameters
@@ -352,17 +379,22 @@ legend("topleft", legend = c("Hare", "Lynx"), fill = clrs)
 
 ## Inference for multivariate SDE models
 
-Parameter inference is conducted used a well-known data augmentation scheme due to @pedersen95.  Assume that, as above, the SDE observations are evenly spaced with interobservation time $\dt$.  For any integer $m > 0$, let $\Y_{(m)} = (\rv [m,0] {\Y} {m,Nm})$ denote the value of the SDE at equally spaced intervals of $\dt_m = \dt/m$.  Thus, $\Y_{(1)} = \Y$ corresponds to the observed data, and for $m > 1$, we have $\Y_{m,nm} = \Y_n$.  Thus we shall refer to the "missing data" as $\Ym = \Y_{(m)} \setminus \Y$.  The Euler-Maruyama approximation to the complete likelihood is
+Parameter inference is conducted used a well-known data augmentation scheme due to @pedersen95.  Assume that, as above, the SDE observations are evenly spaced with interobservation time $\dt$.  For any integer $m > 0$, let $\Y_{(m)} = (\Y_{m,0}, \ldots, \Y_{m,Nm})$ denote the value of the SDE at equally spaced intervals of $\dt_m = \dt/m$.  Thus, $\Y_{(1)} = \Y$ corresponds to the observed data, and for $m > 1$, we have $\Y_{m,nm} = \Y_n$.  Thus we shall refer to the "missing data" as $\Ym = \Y_{(m)} \setminus \Y$.  The Euler-Maruyama approximation to the complete likelihood is
+
 $$
 \mathcal L(\tth \mid \Y_{(m)}) = \prod_{n=0}^{Nm-1} \varphi\Big(\Y_{m,n+1} \mid \Y_{m,n} + \dr_\tth(\Y_{m,n})\dt_m, \df_\tth(\Y_{m,n}\dt)\Big),
 $$
+
 where $\varphi(\y \mid \mathbf \mu, \mathbf \Sigma)$ is the PDF of $\y \sim \N(\mathbf \mu, \mathbf \Sigma)$.  The Bayesian data augmentation scheme then consists of chosing a prior $\pi(\tth)$ and sampling from the posterior distribution
+
 $$
 p_m(\tth \mid \Y) = \int \mathcal L(\tth \mid \Y_{(m)}) \times \pi(\tth) \, \ud \Ym.
 $$
+
 As $m \to \infty$ this approximate posterior converges to the true SDE posterior $p(\tth \mid \Y)$.
 
-Posterior sampling from the Euler-Maruyama posterior is accomplished with the function `sde.post`.  In the following example we use $m = 1$, i.e., there is no missing data.  We'll use a Lebesgue prior $\pi(\tth) \propto 1$; more information on the [default](#defprior) and [custom](#custprior) prior specifications can be found in the following sections.
+Posterior sampling from the Euler-Maruyama posterior is accomplished with the function `sde.post()`.  In the following example we use $m = 1$, i.e., there is no missing data.  We'll use a Lebesgue prior $\pi(\tth) \propto 1$; more information on the [default](#defprior) and [custom](#custprior) prior specifications can be found in the following sections.
+
 ```{r, fig.width = 10, fig.height = 4, out.width = "90%"}
 # initialize the posterior sampler
 init <- sde.init(model = lvmod, x = Xobs, dt = dT,
@@ -386,36 +418,43 @@ for(ii in 1:lvmod$nparams) {
 }
 ```
 
-### Missing data specification with `sde.init`
+### Missing data specification with `sde.init()`
 
-In the example above there was no missing data, i.e., $m = 1$ and both components of the SDE are observed at each time $\rv [0] t n$.  In order to refine the Euler-Maruyama approximation, we simply pass a larger value of $m$ to `sde.init`:
+In the example above there was no missing data, i.e., $m = 1$ and both components of the SDE are observed at each time $t_0, \ldots, t_N$.  In order to refine the Euler-Maruyama approximation, we simply pass a larger value of $m$ to `sde.init()`:
+
 ```{r, eval = FALSE}
 # 3 missing data points between each observation, so dt_m = dt/4
 m <- 4
 init <- sde.init(model = lvmod, x = Xobs, dt = dT,
                  m = m, theta = c(.1, .1, .1))
 ```
+
 We can also assume that only the first $q < d$ components of the SDE are observed, with the last $d-q$ being latent.  In this case with $q = 1$, the lynx population would be unobserved, and this is specified with the `nvar.obs` argument:
+
 ```{r, eval = FALSE}
 init <- sde.init(model = lvmod, x = Xobs, dt = dT,
                  nvar.obs = 1, # number of "observed" variables per timepoint
                  m = m, theta = c(.1, .1, .1))
 ```
+
 Note that the initial data `x` must still be supplied as an $(N+1) \times d$ matrix, with the missing values corresponding to initial values for the MCMC sampler.
 
 ### Default prior specification {#defprior}
 
-Since **`msde`** allows for some of the $q$ components of $\Y_t$ to be latent, a prior must be specified not only for $\tth$ but also for the latent variables in the initial observation $\Y_0$.
+Since **msde** allows for some of the $q$ components of $\Y_t$ to be latent, a prior must be specified not only for $\tth$ but also for the latent variables in the initial observation $\Y_0$.
 
 In the example above, we assumed a Lebesgue prior $\pi(\tth, \Y_0) \propto 1$, with the restriction that $\tth, \Y_0 > 0$ (as specified in the `sdeModel` class definition via the `isValidData` and `isValidParams` validators).
 
 #### Default prior
 
-The default prior in **`msde`** is a multivariate normal, for which the (fixed) hyper-parameters are supplied via the `hyper` argument to `sde.post`.  The `hyper` argument can either be `NULL`, or a list with elements `mu` and `Sigma`.  These consist of a named vector named matrix specifying the mean and variance of the named elements.  Unnamed elements are given a Lebesgue prior.  So for example, posterior inference for the dataset above with $m = 1$, latent variable $L$, and prior distribution
+The default prior in **msde** is a multivariate normal, for which the (fixed) hyper-parameters are supplied via the `hyper` argument to `sde.post()`.  The `hyper` argument can either be `NULL`, or a list with elements `mu` and `Sigma`.  These consist of a named vector named matrix specifying the mean and variance of the named elements.  Unnamed elements are given a Lebesgue prior.  So for example, posterior inference for the dataset above with $m = 1$, latent variable $L$, and prior distribution
+
 $$
 L_0, \alpha, \gamma \iid \N(1, 1), \qquad \pi(H_0, \beta \mid H_0, \alpha, \gamma) \propto 1
 $$
+
 is obtained as follows:
+
 ```{r, fig.width = 10, fig.height = 4, out.width = "90%"}
 # prior specification
 pnames <- c("L", "alpha", "gamma")
@@ -448,18 +487,22 @@ for(ii in 1:lvmod$nparams) {
 
 ## Custom prior specification {#custprior}
 
-**`msde`** provides a two-stage mechanism for specifying user-defined priors.  This is illustrated below with a simple log-normal prior on $\eeta = (\alpha, \gamma, \beta, L_0) = (\rv \eta 4)$, namely
+**msde** provides a two-stage mechanism for specifying user-defined priors.  This is illustrated below with a simple log-normal prior on $\eeta = (\alpha, \gamma, \beta, L_0) = (\rv \eta 4)$, namely
+
 $$
 \pi(\eeta) \iff \log(\eta_i) \iid \N(\mu_i, \sigma_i^2),
 $$
-where the hyperparameters are $\bm \mu = (\rv \mu 4)$ and $\bm \sigma = (\rv \sigma 4)$.  Ultimately, the hyperparameters will be passed to `sde.post` as a two-element list, e.g.,
+
+where the hyperparameters are $\bm \mu = (\rv \mu 4)$ and $\bm \sigma = (\rv \sigma 4)$.  Ultimately, the hyperparameters will be passed to `sde.post()` as a two-element list, e.g.,
+
 ```{r, eval = FALSE}
 hyper <- list(mu = c(0,0,0,0), sigma = c(1,1,1,1))
 ```
 
 ### The `sdePrior` class definition
 
-The first step of the prior specification is to define it at the **C++** level, through the `sdPrior` class.  The class corresponding to the log-normal prior above is defined in the file `lotvolPrior.h` pasted below.
+The first step of the prior specification is to define it at the C++ level, through the `sdPrior` class.  The class corresponding to the log-normal prior above is defined in the file `lotvolPrior.h` pasted below.
+
 ```{Rcpp, eval = FALSE}
 #ifndef sdePrior_h
 #define sdePrior_h 1
@@ -512,26 +555,29 @@ inline double sdePrior::logPrior(double *theta, double *x) {
 
 #endif
 ```
+
 The meaning of each class member is as follows:
 
-* `sdePrior`: The class constructor.  This is how the **C++** code collects the hyperparameters from **R**.  Its argument signature must be matched *exactly* and has the following meaning:
-    * `phi`: A double-pointers of type `double`.  This is a simple mechanism to give the address of the elements of a list of numeric vectors, as the hyperparameters are defined on the **R** side.  So with the example above, $\sigma_2$ is pointed to by `phi[1][1]`.
-	* `nArgs`: The number of elements in the hyperparameter vector, i.e., `length(hyper)`, which in this case is 2.  In this case this number is known in advance, but for greater flexibility it is determined at runtime automatically in the **C++** code from the specific value of `hyper`.
-	* `nEachArg`: The length of each hyperparameter element, i.e., `sapply(hyper, length)`.  Again this is determined automatically from the **C++** code.
+* `sdePrior`: The class constructor.  This is how the C++ code collects the hyperparameters from R.  Its argument signature must be matched *exactly* and has the following meaning:
+    * `phi`: A double-pointers of type `double`.  This is a simple mechanism to give the address of the elements of a list of numeric vectors, as the hyperparameters are defined on the R side.  So with the example above, $\sigma_2$ is pointed to by `phi[1][1]`.
+	* `nArgs`: The number of elements in the hyperparameter vector, i.e., `length(hyper)`, which in this case is 2.  In this case this number is known in advance, but for greater flexibility it is determined at runtime automatically in the C++ code from the specific value of `hyper`.
+	* `nEachArg`: The length of each hyperparameter element, i.e., `sapply(hyper, length)`.  Again this is determined automatically from the C++ code.
 Note that for speed considerations, the contents of `phi` should be copied directly into the `sdePrior` object, held here in the private members `mean` and `sd`.
 * `~sdePrior`: The class destructor, which is needed to deallocate the dynamic memory to prevent memory leaks.
-* `logPrior`: The log-prior function itself, of which the signature must be matched *exactly*.  Its arguments correspond to $\tth$ and $\Y_0$.  In this case, we use the **C++** version of **R**'s `dlnorm` function, which is accessible by including `Rcpp.h`.
+* `logPrior`: The log-prior function itself, of which the signature must be matched *exactly*.  Its arguments correspond to $\tth$ and $\Y_0$.  In this case, we use the C++ version of R's `dlnorm` function, which is accessible by including `Rcpp.h`.
 
-### Formatting the **R** input to the **C++** code
+### Formatting the R input to the C++ code
 
-**C++** is much less forgiving that **R** when it comes to accepting incorrect inputs.  Thus, if a user accidently passed the hyperparameters to `sde.post` as e.g.,
+C++ is much less forgiving that R when it comes to accepting incorrect inputs.  Thus, if a user accidently passed the hyperparameters to `sde.post()` as e.g.,
+
 ```{r, eval = FALSE}
 bad.hyper <- list(mean = c(0,0,0,0))
 ```
-at best this would cause garbage MCMC output and at worst, the **R** session to terminate abruptly.  For this reason **`msde`** provides an input-checking mechanism, which can also used to format the hyperparameters into the list-of-numeric-vectors input expected by the **C++** code.  This is done by passing an appropriate input checking function to `sde.make.model` through the argument `hyper.check`.  This argument accepts a function with the *exact* signature of the example below.  In this example, `hyper` must be a list with elements `mu` and `sigma`, which are either:
 
-1.  scalars, in which case each is replicated four times.
-2.  vectors of length four, in which case the order is determined by $\eeta = (\alpha, \beta, \gamma, L_0)$.
+at best this would cause garbage MCMC output and at worst, the R session to terminate abruptly.  For this reason **msde** provides an input-checking mechanism, which can also used to format the hyperparameters into the list-of-numeric-vectors input expected by the C++ code.  This is done by passing an appropriate input checking function to `sde.make.model()` through the argument `hyper.check`.  This argument accepts a function with the *exact* signature of the example below.  In this example, `hyper` must be a list with elements `mu` and `sigma`, which are either:
+
+1.  Scalars, in which case each is replicated four times.
+2.  Vectors of length four, in which case the order is determined by $\eeta = (\alpha, \beta, \gamma, L_0)$.
 
 ```{r}
 # must match argument signature _exactly_
@@ -558,6 +604,7 @@ lvcheck <- function(hyper, param.names, data.names) {
 ### Compiling and checking the prior
 
 Now we are ready to create the `sde.model` object:
+
 ```{r}
 data.names <- c("H", "L")
 param.names <- c("alpha", "beta", "gamma")
@@ -567,7 +614,9 @@ lvmod2 <- sde.make.model(ModelFile = "lotvolModel.h",
                         data.names = data.names,
                         param.names = param.names)
 ```
-We can also test the **C++** implementation of the prior against one written in **R**, using the **`msde`** function `sde.prior`.
+
+We can also test the C++ implementation of the prior against one written in R, using the **msde** function `sde.prior()`.
+
 ```{r}
 # generate some test values
 nreta <- 12
@@ -603,38 +652,44 @@ max.diff(lpi.R, lpi.cpp)
 
 ## Installation {#install}
 
-The **`msde`** package requires on-the-fly **C++** compiling of user-specified models which is handled through the **R** package **`Rcpp`** [@eddelbuettel.francois11].
+The **msde** package requires on-the-fly C++ compiling of user-specified models which is handled through the R package [**Rcpp**](http://www.rcpp.org/) [@eddelbuettel.francois11].
 
-### Enable **C++** compiling for **R**
+### Enable C++ compiling for R
 
-* For Windows, install [**`Rtools`**](https://cran.r-project.org/bin/windows/Rtools/).  Let the installer modify your system variable `Path`.
-* For OS X, install the [**`Xcode`** command line tools](https://developer.apple.com/library/content/technotes/tn2339/_index.html).  To do this, open Terminal and run `xcode-select --install`.  You can simply press "Install" without obtaining the entire Xcode suite.
-* For Linux, install ``build-essential`` and a recent version of **`g++`** or **`clang++`**.
+* For Windows, install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).  Let the installer modify your system variable `Path`.
+* For OS X, install the [Xcode command line tools](https://developer.apple.com/library/archive/technotes/tn2339/_index.html).  To do this, open Terminal and run `xcode-select --install`.  You can simply press "Install" without obtaining the entire Xcode suite.
+* For Linux, install ``build-essential`` and a recent version of g++ or clang++.
 
-To make sure the **C++** compiler is set up correctly, install the **``Rcpp``** package and from within **R** run the following:
+To make sure the C++ compiler is set up correctly, install the **Rcpp** package and from within R run the following:
+
 ```{r, eval = FALSE}
 Rcpp::cppFunction("double AddTest(double x, double y) {return x + y;}")
 AddTest(5.2, 3.4)
 ```
-If the code compiles and outputs `r 5.2+3.4` then the **C++** compiler is interfaced with **R** correctly.
 
-### Optimize settings for the **C++** compiler (optional)
+If the code compiles and outputs `r 5.2+3.4` then the C++ compiler is interfaced with R correctly.
 
-It's possible to speed up **`msde`** by a reasonable amount by passing a few flags to the **C++** compiler.  This can be done by creating a `Makevars` file (or `Makevars.win` on Windows).  To do this, find your home folder by running the **R** command `Sys.getenv("HOME")`, and in that folder create a subfolder called `.R` containing the `Makevars` file (if it doesn't exist already).  Now add the following lines to th `.R/Makevars` file:
+### Optimize settings for the C++ compiler (optional)
+
+It's possible to speed up **msde** by a reasonable amount by passing a few flags to the C++ compiler.  This can be done by creating a `Makevars` file (or `Makevars.win` on Windows).  To do this, find your home folder by running the R command `Sys.getenv("HOME")`, and in that folder create a subfolder called `.R` containing the `Makevars` file (if it doesn't exist already).  Now add the following lines to th `.R/Makevars` file:
+
 ```{bash, eval = FALSE}
 CXXFLAGS=-O3 -ffastmath
 CXX=clang++
 ```
-The first two options make the **C++** code faster and the third uses the **`clang++`** compiler instead of **`g++`**, which has better error messages (and is the default compiler on OS X).
 
-### Enable **`OpenMP`** support (optional)
+The first two options make the C++ code faster and the third uses the clang++ compiler instead of g++, which has better error messages (and is the default compiler on OS X).
 
-On a multicore machine, **`msde`** can parallelize some of its computations with **`OpenMP`** directives.  This can't be done through **R** on Windows and is supported by default on recent versions of **`g++/clang++`** on Linux.  For OS X, the default version of **`clang++`** does not support **`OpenMP`** but it is supported by that of the [LLVM Project](http://llvm.org/).  This can be installed through [Homebrew](https://brew.sh/).  After installing Homebrew using the instructions from the previous link, in Terminal run `brew install llvm`.  Then have **R** use LLVM's **`clang++`** compiler by setting the following in `.R/Makevars`:
+### Enable OpenMP support (optional)
+
+On a multicore machine, **msde** can parallelize some of its computations with [OpenMP](https://en.wikipedia.org/wiki/OpenMP) directives.  This can't be done through R on Windows and is supported by default on recent versions of g++/clang++ on Linux.  For OS X, the default version of clang++ does not support OpenMP but it is supported by that of the [LLVM Project](http://llvm.org/).  This can be installed through [Homebrew](https://brew.sh/).  After installing Homebrew using the instructions from the previous link, in Terminal run `brew install llvm`.  Then have R use LLVM's clang++ compiler by setting the following in `.R/Makevars`:
+
 ```{bash, eval = FALSE}
 CXXFLAGS=-I/usr/local/opt/llvm/include -O3 -ffast-math
 LDFLAGS=-L/usr/local/opt/llvm/lib
 CXX=/usr/local/opt/llvm/bin/clang++
 ```
-Note that these compiler directives alone will not enable **`OpenMP`** support.  This happens at compile time by linking against `-fopenmp`, which is done internally by **`msde`**.
+
+Note that these compiler directives alone will not enable OpenMP support.  This happens at compile time by linking against `-fopenmp`, which is done internally by **msde**.
 
 ## References

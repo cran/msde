@@ -1,9 +1,9 @@
+/// @file sdeRUtils.h
+
 #ifndef sdeRUtils_h
 #define sdeRUtils_h
 
-// #include <Rcpp.h>
-//[[Rcpp::depends("RcppArmadillo")]]
-#include <RcppArmadillo.h>
+#include <Rcpp.h>
 typedef Rcpp::LogicalVector Logical;
 typedef Rcpp::NumericVector Numeric;
 typedef Rcpp::IntegerVector Integer;
@@ -11,19 +11,27 @@ typedef Rcpp::List List;
 //using namespace Rcpp;
 #include "sdeUtils.h"
 #include "sdeLogLik.h"
-#include "sdeInterface.h"
+#include "sdeRobj.h"
 
+/// @return Number of SDE dimensions.
 template <class sMod, class sPi>
   inline int sdeRobj<sMod, sPi>::get_nDims() {
   return sMod::nDims;
 }
 
-
+/// @return Number of SDE parameters.
 template <class sMod, class sPi>
   inline int sdeRobj<sMod, sPi>::get_nParams() {
   return sMod::nParams;
 }
 
+/// @param[in] xIn Data vector of length `nDims` or `nDims * nReps`.
+/// @param[in] thetaIn Parameter vector of length `nParams` or `nParams * nReps`.
+/// @param[in] singleX Whether `xIn` is of length `nDims`.
+/// @param[in] singleTheta Whether `thetaIn` is of length `nParams`.
+/// @param[in] nReps Number of data/parameter pairs to vectorize over.
+///
+/// @return Logical vector of length `nReps`.
 template <class sMod, class sPi>
   inline Logical sdeRobj<sMod, sPi>::isData(Numeric xIn, Numeric thetaIn,
 					    bool singleX, bool singleTheta,
@@ -41,6 +49,10 @@ template <class sMod, class sPi>
   return validOut;
 }
 
+/// @param[in] thetaIn Parameter vector of length `nParams * nReps`.
+/// @param[in] nReps Number of parameter vectors to vectorize over.
+///
+/// @return Logical vector of length `nReps`.
 template <class sMod, class sPi>
   inline Logical sdeRobj<sMod, sPi>::isParams(Numeric thetaIn, int nReps) {
   int nParams = sMod::nParams;
@@ -53,8 +65,15 @@ template <class sMod, class sPi>
   return validOut;
 }
 
-// Best to parallelize these from within R: easier and prob faster since
-// memory can be allocated in parallel there
+/// @param[in] xIn Data vector of length `nDims` or `nDims * nReps`.
+/// @param[in] thetaIn Parameter vector of length `nParams` or `nParams * nReps`.
+/// @param[in] singleX Whether `xIn` is of length `nDims`.
+/// @param[in] singleTheta Whether `thetaIn` is of length `nParams`.
+/// @param[in] nReps Number of data/parameter pairs to vectorize over.
+///
+/// @return Vector of length `nDims * nReps`, of which the drift for a given data/parameter pair are contiguous elements.
+///
+/// @note Best to parallelize these from within R: easier and probably faster since memory can be allocated in parallel there.
 template <class sMod, class sPi>
   inline Numeric sdeRobj<sMod, sPi>::Drift(Numeric xIn, Numeric thetaIn,
 					   bool singleX, bool singleTheta,
@@ -73,6 +92,13 @@ template <class sMod, class sPi>
   return drOut;
 }
 
+/// @param[in] xIn Data vector of length `nDims` or `nDims * nReps`.
+/// @param[in] thetaIn Parameter vector of length `nParams` or `nParams * nReps`.
+/// @param[in] singleX Whether `xIn` is of length `nDims`.
+/// @param[in] singleTheta Whether `thetaIn` is of length `nParams`.
+/// @param[in] nReps Number of data/parameter pairs to vectorize over.
+///
+/// @return Vector of length `nDims^2 * nReps`, of which the diffusion matrix on the (upper) cholesky scale for a given data/parameter pair are contiguous elements.
 template <class sMod, class sPi>
   inline Numeric sdeRobj<sMod, sPi>::Diff(Numeric xIn, Numeric thetaIn,
 					  bool singleX, bool singleTheta,

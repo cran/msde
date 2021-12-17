@@ -1,16 +1,18 @@
 #' Argument checking for the default multivariate normal prior.
 #'
-#' @param hyper The normal prior's hyperparameters: \code{NULL}, or a list with elements \code{mu} and \code{Sigma}, corresponding to a named mean vector and variance matrix (see Details).
+#' @param hyper The normal prior's hyperparameters: `NULL`, or a list with elements `mu` and `Sigma`, corresponding to a named mean vector and variance matrix (see Details).
 #' @param param.names Vector of parameter names (see Details).
 #' @param data.names Vector of data names (see Details).
+#'
 #' @return A list with the following elements:
 #' \describe{
-#'   \item{\code{mean}}{The mean vector.}
-#'   \item{\code{cholSd}}{The upper upper Cholesky factor of the variance matrix.}
-#'   \item{\code{thetaId}}{The index of the corresponding variables in \code{theta}.}
-#'   \item{\code{xId}}{The index of the corresponding variables in \code{x0}.}
+#'   \item{`mean`}{The mean vector.}
+#'   \item{`cholSd`}{The upper upper Cholesky factor of the variance matrix.}
+#'   \item{`thetaId`}{The index of the corresponding variables in `theta`.}
+#'   \item{`xId`}{The index of the corresponding variables in `x0`.}
 #' }
-#' @details This function is not meant to be called directly by the user, but rather to parse the hyper-parameters of a default multivariate normal prior distribution to be passed to the C++ code in \code{\link{sde.prior}} and \code{\link{sde.post}}.  This default prior is multivariate normal on the elements of \code{(theta, x0)} specified by each of \code{names(mu)}, \code{rownames(Sigma)}, and \code{colnames(Sigma)}.  The remaining components are given Lebesgue priors, or a full Lebesgue prior if \code{hyper == NULL}.  If the names of \code{mu} and \code{Sigma} are inconsistent an error is thrown.
+#'
+#' @details This function is not meant to be called directly by the user, but rather to parse the hyper-parameters of a default multivariate normal prior distribution to be passed to the C++ code in [sde.prior()] and [sde.post()].  This default prior is multivariate normal on the elements of `(theta, x0)` specified by each of `names(mu)`, `rownames(Sigma)`, and `colnames(Sigma)`.  The remaining components are given Lebesgue priors, or a full Lebesgue prior if `hyper == NULL`.  If the names of `mu` and `Sigma` are inconsistent an error is thrown.
 #' @export
 mvn.hyper.check <- function(hyper, param.names, data.names) {
   nparams <- length(param.names)

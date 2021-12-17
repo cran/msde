@@ -1,19 +1,18 @@
+/// @file sdeMCMC.h
+
 #ifndef sdeMCMC_h
 #define sdeMCMC_h 1
 
 
-// posterior inference for msde's
-
-// for speed considerations, and since it is unlikely that users will
-// be building their own MCMC routines, all transitions will be members
-// of the same object.
-// the object will inherit from sdeLogLik.
 
 #include "mvnUtils.h"
 #include "sdeLogLik.h"
 //#include "mcmcUtils.h"
 //#include "sdePrior.h"
 
+/// MCMC sampling for Euler approximation to SDE posterior.
+///
+/// For speed considerations, and since it is unlikely that users will be building their own MCMC routines, all transitions will be members of the same object.  The object will inherit from `sdeLogLik`.
 template <class sMod, class sPi>
 class sdeMCMC : public sdeLogLik<sMod> {
  private:
@@ -23,6 +22,7 @@ class sdeMCMC : public sdeLogLik<sMod> {
   int *missInd;
   int nMiss, nMiss0, nMissN;
   sPi *prior;
+  /// Calculate the mean and variance of the Eraker proposal.
   void mvEraker(double *mean, double *sd,
 		double *x0, double *x2,
 		double b, double b2, double *theta,
@@ -40,28 +40,39 @@ class sdeMCMC : public sdeLogLik<sMod> {
   using sdeLogLik<sMod>::nObsComp;
   using sdeLogLik<sMod>::sde;
   using sdeLogLik<sMod>::loglik;
-  /// space for full (complete data + params) current MCMC state and proposal states
+  /// Space for full (complete data + params) current MCMC state and proposal states.
   double *currFull, *propFull;
-  /// separate pointers for data and params
+  /// Separate pointers for data and params.
   double *currX, *propX, *currTheta, *propTheta;
-  /// space for simultaneous acceptance rates (predrawn in parallel version)
+  /// Space for simultaneous acceptance rates (predrawn in parallel version).
   double *propAccept, *propU;
-  /// shrinkage factors for Eraker proposals
+  /// Shrinkage factors for Eraker proposals.
   double *B, *sqrtB;
-  // int *nObsComp; ///< number of observed dimensions per observation
-  bool *fixedTheta; ///< whether or not each parameter gets updated
-  /// missing data updates
+  bool *fixedTheta; ///< Whether or not each parameter gets updated.
+  /// Missing data updates.
   void missGibbsUpdate(double *jumpSd, int *gibbsAccept, int *paramAccept);
-  /// parameter updates
+  /// Componentwise vanilla MH parameter updates.
   void paramVanillaUpdate(double *jumpSd, int *paramAccept);
-  /// constructor
+  /// Constructor.
   sdeMCMC(int n, double *dt, double *xInit, double *thetaInit,
 	  int *xIndex, bool *thetaIndex,
 	  double **phi, int nArgs, int *nEachArg, int ncores);
-  /// destructor
+  /// Destructor.
   ~sdeMCMC();
 };
 
+/// The current state of the MCMC algorithm is stored in `currFull`, `currData`, and `currParams`.  The latter two are pointers to different indices of the former.
+///
+/// @param[in] n Number of complete data observations.
+/// @param[in] dt Array of interobservation times.
+/// @param[in] xInit Initial SDE values.
+/// @param[in] thetaInit Initial parameter values.
+/// @param[in] xIndex Number of observed sde components per time point.
+/// @param[in] thetaIndex Whether or not each parameter should be fixed (`true` means fixed).
+/// @param[in] phi Pointer to storage for each argument to prior.
+/// @param[in] nArgs Number of prior arguments.
+/// @param[in] nEachArg Pointer to length of each argument to prior.
+/// @param[in] ncores Number of parallel cores to use.
 template <class sMod, class sPi>
   inline sdeMCMC<sMod, sPi>::sdeMCMC(int n, double *dt,
 				     double *xInit, double *thetaInit,

@@ -1,5 +1,6 @@
-# simple chronometer.
-# has a little display and avoids wrapping everything in system.time
+#' Simple chronometer.
+#' Has a little display and avoids wrapping everything in `system.time()`.
+#' @noRd
 chrono <- function(start, display = TRUE) {
   if(missing(start)) ans <- proc.time()
   else {

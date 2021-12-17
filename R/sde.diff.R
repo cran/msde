@@ -1,27 +1,14 @@
 #' SDE diffusion function.
 #'
 #' Computes the SDE model's diffusion function given data and parameter values.
-#' @param model An \code{sde.model} object.
-#' @param x A vector or matrix of data with \code{ndims} columns.
-#' @param theta A vector or matrix of parameters with \code{nparams} columns.
-#' @return A matrix with \code{ndims^2} columns containing the diffusion function evaluated at \code{x} and \code{theta}. Each row corresponds to the upper triangular Cholesky factor of the diffusion matrix.  If either input contains invalid SDE data or parameters an error is thrown.
-#' @examples
-#' # load Heston's model
-#' hmod <- sde.examples("hest")
 #'
-#' # single input
-#' theta <- c(alpha = 0.1, gamma = 1, beta = 0.8, sigma = 0.6, rho = -0.8)
-#' x0 <- c(X = log(1000), Z = 0.1)
-#' sde.diff(model = hmod, x = x0, theta = theta)
+#' @param model An `sde.model` object.
+#' @param x A vector or matrix of data with `ndims` columns.
+#' @param theta A vector or matrix of parameters with `nparams` columns.
 #'
-#' # multiple inputs
-#' nreps <- 10
-#' Theta <- apply(t(replicate(nreps, theta)), 2, jitter)
-#' X0 <- apply(t(replicate(nreps, x0)), 2, jitter)
-#' sde.diff(model = hmod, x = X0, theta = Theta)
+#' @return A matrix with `ndims^2` columns containing the diffusion function evaluated at `x` and `theta`. Each row corresponds to the upper triangular Cholesky factor of the diffusion matrix.  If either input contains invalid SDE data or parameters an error is thrown.
 #'
-#' # mixed inputs
-#' sde.diff(model = hmod, x = x0, theta = Theta)
+#' @example examples/sde.diff.R
 #' @export
 sde.diff <- function(model, x, theta) {
   if(class(model) != "sde.model") {
@@ -46,11 +33,11 @@ sde.diff <- function(model, x, theta) {
   if(!all(.is.valid.data(model, x, theta, single.x, single.theta, nreps))) {
     stop("x contains invalid sde data.")
   }
-  df <- .sde_Diff(sdeptr = model$ptr, xIn = as.double(x),
-                  thetaIn = as.double(theta),
-                  singleX = as.logical(single.x),
-                  singleTheta = as.logical(single.theta),
-                  nReps = as.integer(nreps))
+  df <- model$cobj$Diff(xIn = as.double(x),
+                        thetaIn = as.double(theta),
+                        singleX = as.logical(single.x),
+                        singleTheta = as.logical(single.theta),
+                        nReps = as.integer(nreps))
   df <- matrix(df, nrow = nreps, ncol = ndims^2, byrow = TRUE)
   # put zeros into the off-triangular elements
   df[,lower.tri(diag(ndims))] <- 0

@@ -40,7 +40,7 @@ vignette: >
 \newcommand{\LLam}{\bm{\Lambda}}
 \newcommand{\PPsi}{\bm{\Psi}}
 
-This vignette contains a complete description of the sample models found in `msde::sde.examples`.
+This vignette contains a complete description of the sample models found in `msde::sde.examples()`.
 
 ## Heston's stochastic volatility model
 
@@ -101,6 +101,6 @@ $$
 \end{bmatrix},
 \end{split}
 $$
-where $A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)$ and $\tth = (\rv \theta 8)$, $\theta_i = \log(\gamma_i)$, are various reaction rates.  The data and parameter restrictions for this model are $\tth \in \mathbb R^8$, $\Y_t > 1$, and $D_t < 10$.  This model is contained in `sde.examples(model = "pgnet")`.
+where $A_t = \gamma_1D_tQ_t + \gamma_2(10-D_t)$ and $\tth = (\theta_1, \ldots, \theta_8)$, $\theta_i = \log(\gamma_i)$, are various reaction rates.  The data and parameter restrictions for this model are $\tth \in \mathbb R^8$, $\Y_t > 1$, and $D_t < 10$.  This model is contained in `sde.examples(model = "pgnet")`.
 
 ## References

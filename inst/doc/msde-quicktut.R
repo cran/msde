@@ -1,11 +1,11 @@
-## ---- eval = FALSE-------------------------------------------------------
+## ---- indent = "    ", eval = FALSE-------------------------------------------
 #  sde.drift <- function(x, theta) {
 #    dr <- c(theta[1]*x[1] - theta[2]*x[1]*x[2], # alpha * H - beta * H*L
-#        theta[2]*x[1]*x[2] - theta[3]*x[2]) # beta * H*L - gamma * L
+#            theta[2]*x[1]*x[2] - theta[3]*x[2]) # beta * H*L - gamma * L
 #    dr
 #  }
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- indent = "    ", eval = FALSE-------------------------------------------
 #  sde.diff <- function(x, theta) {
 #    df <- matrix(NA, 2, 2)
 #    df[1,1] <- theta[1]*x[1] + theta[2]*x[1]*x[2] # alpha * H + beta * H*L
@@ -15,7 +15,7 @@
 #    df
 #  }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 require(msde)
 
 # put lotvolModel.h in the working directory
@@ -25,7 +25,7 @@ lvmod <- sde.make.model(ModelFile = "lotvolModel.h",
                         data.names = data.names,
                         param.names = param.names)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # helper functions
 
 # random matrix of size nreps x length(x) from vector x
@@ -108,7 +108,7 @@ theta.cpp <- sde.valid.params(model = lvmod, theta = Theta.bad)
 c(x = all(x.R == x.cpp), theta = all(theta.R == theta.cpp))
 
 
-## ---- fig.width = 10, fig.height = 5, out.width = "90%"------------------
+## ---- fig.width = 10, fig.height = 5, out.width = "90%"-----------------------
 
 # simulation parameters
 theta0 <- c(alpha = .5, beta = .0025, gamma = .3) # true parameter values
@@ -133,7 +133,7 @@ lines(tseq, Xobs[,"H"], type = "o", pch = 16, col = clrs[1])
 lines(tseq, Xobs[,"L"], type = "o", pch = 16, col = clrs[2])
 legend("topleft", legend = c("Hare", "Lynx"), fill = clrs)
 
-## ---- fig.width = 10, fig.height = 4, out.width = "90%"------------------
+## ---- fig.width = 10, fig.height = 4, out.width = "90%"-----------------------
 # initialize the posterior sampler
 init <- sde.init(model = lvmod, x = Xobs, dt = dT,
                  m = 1, theta = c(.1, .1, .1))
@@ -155,18 +155,18 @@ for(ii in 1:lvmod$nparams) {
   abline(v = theta0[ii], lwd = 4, lty = 2)
 }
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # 3 missing data points between each observation, so dt_m = dt/4
 #  m <- 4
 #  init <- sde.init(model = lvmod, x = Xobs, dt = dT,
 #                   m = m, theta = c(.1, .1, .1))
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  init <- sde.init(model = lvmod, x = Xobs, dt = dT,
 #                   nvar.obs = 1, # number of "observed" variables per timepoint
 #                   m = m, theta = c(.1, .1, .1))
 
-## ---- fig.width = 10, fig.height = 4, out.width = "90%"------------------
+## ---- fig.width = 10, fig.height = 4, out.width = "90%"-----------------------
 # prior specification
 pnames <- c("L", "alpha", "gamma")
 hyper <- list(mu = rep(1, 3), Sigma = diag(3))
@@ -195,13 +195,13 @@ for(ii in 1:lvmod$nparams) {
   abline(v = theta0[ii], lwd = 4, lty = 2)
 }
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  hyper <- list(mu = c(0,0,0,0), sigma = c(1,1,1,1))
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  bad.hyper <- list(mean = c(0,0,0,0))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # must match argument signature _exactly_
 lvcheck <- function(hyper, param.names, data.names) {
   if(is.null(names(hyper)) ||
@@ -222,7 +222,7 @@ lvcheck <- function(hyper, param.names, data.names) {
 }
 #lvcheck <- mvn.hyper.check
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data.names <- c("H", "L")
 param.names <- c("alpha", "beta", "gamma")
 lvmod2 <- sde.make.model(ModelFile = "lotvolModel.h",
@@ -231,7 +231,7 @@ lvmod2 <- sde.make.model(ModelFile = "lotvolModel.h",
                         data.names = data.names,
                         param.names = param.names)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # generate some test values
 nreta <- 12
 x0 <- c(H = 71, L = 79)
@@ -263,7 +263,7 @@ for(ii in 1:nrphi) {
 max.diff(lpi.R, lpi.cpp)
 
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  Rcpp::cppFunction("double AddTest(double x, double y) {return x + y;}")
 #  AddTest(5.2, 3.4)
 

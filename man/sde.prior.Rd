@@ -22,7 +22,10 @@ A vector of log-prior densities evaluated at the inputs.
 Evaluates the SDE prior given data, parameter, and hyperparameter values.
 }
 \details{
-The prior is constructed at the \code{C++} level by defining a function (i.e., public member) \cr \code{double logPrior(double *theta, double *x)} within the \code{sdePrior} class.  At the \code{R} level, the \code{hyper.check} argument of \code{sde.make.model} is a function with arguments \code{hyper}, \code{param.names}, \code{data.names} used to convert \code{hyper} into a list of \code{NULL} or double-vectors which get passed on to the \code{C++} code.  This function can also be used to throw \code{R}-level errors to protect the \code{C++} code from invalid inputs, as is done for the default prior in \code{\link{mvn.hyper.check}}.  For a full example see the "Custom Prior" section in \code{vignette("msde-quicktut")}.
+The prior is constructed at the \verb{C++} level by defining a function (i.e., public member)\preformatted{double logPrior(double *theta, double *x)
+}
+
+within the \code{sdePrior} class.  At the \code{R} level, the \code{hyper.check} argument of \code{\link[=sde.make.model]{sde.make.model()}} is a function with arguments \code{hyper}, \code{param.names}, \code{data.names} used to convert \code{hyper} into a list of \code{NULL} or double-vectors which get passed on to the \verb{C++} code.  This function can also be used to throw \code{R}-level errors to protect the \verb{C++} code from invalid inputs, as is done for the default prior in \code{\link[=mvn.hyper.check]{mvn.hyper.check()}}.  For a full example see the "Custom Prior" section in \code{vignette("msde-quicktut")}.
 }
 \examples{
 hmod <- sde.examples("hest") # load Heston's model

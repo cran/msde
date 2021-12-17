@@ -1,11 +1,20 @@
-#ifndef sdePrior_h
-#define sdePrior_h 1
+/// @file mvnPrior.h
 
-//[[Rcpp::depends("msde")]]
+#ifndef mvnPrior_h
+#define mvnPrior_h 1
+
 #include <mvnUtils.h>
 //#include "sdeModel.h"
 
 
+/// Multivariate normal prior distribution.
+///
+/// The arguments to the prior consist of:
+///
+/// 1. The mean of the prior random variables, i.e,. the non-fixed parameters and initial missing data points (params and data concatenated together).
+/// 2. The variance (or rather `cholSd`) of these random variables. 
+/// 3. The index of each non-fixed parameter.
+/// 4. The index of each non-fixed initial missing data point.
 class sdePrior {
  private:
   //static const int nDims = sdeModel::nDims;
@@ -15,12 +24,17 @@ class sdePrior {
   double *mean, *cholSd;
   double *tmpX, *tmpZ;
  public:
+  /// Evaluate the prior log-density.
   double logPrior(double *theta, double *x);
+  /// Constructor.
   sdePrior(double **phi, int nArgs, int *nEachArg);
   ~sdePrior();
 };
 
-// constructor
+
+/// @param[in] phi Pointer to storage for each argument of the prior.
+/// @param[in] nArgs Number of prior arguments, which is 4.
+/// @param[in] nEachArg Pointer to length of each argument of the prior.
 inline sdePrior::sdePrior(double **phi, int nArgs, int *nEachArg) {
   int ii;
   nRV = nEachArg[0];
@@ -54,7 +68,6 @@ inline sdePrior::sdePrior(double **phi, int nArgs, int *nEachArg) {
   }
 }
 
-// destructor
 inline sdePrior::~sdePrior() {
   if(nRV > 0) {
     delete [] mean;
@@ -70,6 +83,10 @@ inline sdePrior::~sdePrior() {
   }
 }
 
+/// @param[in] theta Array of parameter values (all of them, fixed ones will be ignored).
+/// @param[in] x Array of data values (all of them, fixed ones will be ignored).
+///
+/// @return Value of the prior log-density.
 inline double sdePrior::logPrior(double *theta, double *x) {
   if(nRV == 0) return(0.0);
   double lp;

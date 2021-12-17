@@ -9,7 +9,7 @@ sde.init(model, x, dt, m = 1, nvar.obs, theta)
 \arguments{
 \item{model}{An \code{sde.model} object.}
 
-\item{x}{An \code{nobs x ndims} matrix of data.}
+\item{x}{An \verb{nobs x ndims} matrix of data.}
 
 \item{dt}{A scalar or length \code{nobs-1} vector of interobservations times.}
 
@@ -22,14 +22,14 @@ sde.init(model, x, dt, m = 1, nvar.obs, theta)
 \value{
 An \code{sde.init} object, corresponding to a list with elements:
 \describe{
-  \item{\code{data}}{An \code{ncomp x ndims} matrix of complete data, where \code{ncomp = N_m = m * (nobs-1)+1}.}
-  \item{\code{dt.m}}{The complete data interobservation time, \code{dt_m = dt/m}.}
-  \item{\code{nvar.obs.m}}{The number of variables observed per row of \code{data}.  Note that \code{nvar.obs.m[(i-1)*m+1] == nvar.obs[ii]}, and that \code{nvar.obs.m[i-1] == 0} if \code{i} is not a multiple of \code{m}.}
-  \item{\code{params}}{Parameter initial values.}
+\item{\code{data}}{An \verb{ncomp x ndims} matrix of complete data, where \code{ncomp = N_m = m * (nobs-1)+1}.}
+\item{\code{dt.m}}{The complete data interobservation time, \code{dt_m = dt/m}.}
+\item{\code{nvar.obs.m}}{The number of variables observed per row of \code{data}.  Note that \code{nvar.obs.m[(i-1)*m+1] == nvar.obs[ii]}, and that \code{nvar.obs.m[i-1] == 0} if \code{i} is not a multiple of \code{m}.}
+\item{\code{params}}{Parameter initial values.}
 }
 }
 \description{
-Specifies the observed SDE data, interobservation times, initial parameter and missing data values to be supplied to \code{\link{sde.post}}.
+Specifies the observed SDE data, interobservation times, initial parameter and missing data values to be supplied to \code{\link[=sde.post]{sde.post()}}.
 }
 \examples{
 # load Heston's model

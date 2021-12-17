@@ -4,15 +4,25 @@
 \alias{sde.sim}
 \title{Simulation of multivariate SDE trajectories.}
 \usage{
-sde.sim(model, x0, theta, dt, dt.sim, nobs, burn = 0, nreps = 1,
-  max.bad.draws = 5000, verbose = TRUE)
+sde.sim(
+  model,
+  x0,
+  theta,
+  dt,
+  dt.sim,
+  nobs,
+  burn = 0,
+  nreps = 1,
+  max.bad.draws = 5000,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{model}{An \code{sde.model} object.}
 
-\item{x0}{A vector or a matrix of size \code{nreps x ndims} of the SDE values at time 0.}
+\item{x0}{A vector or a matrix of size \verb{nreps x ndims} of the SDE values at time 0.}
 
-\item{theta}{A vector or matrix of size \code{nreps x nparams} of SDE parameters.}
+\item{theta}{A vector or matrix of size \verb{nreps x nparams} of SDE parameters.}
 
 \item{dt}{Scalar interobservation time.}
 
@@ -31,10 +41,10 @@ sde.sim(model, x0, theta, dt, dt.sim, nobs, burn = 0, nreps = 1,
 \value{
 A list with elements:
 \describe{
-  \item{\code{data}}{An array of size \code{nobs x ndims x nreps} containing the simulated SDE trajectories.}
-  \item{\code{params}}{The vector or matrix of parameter values used to generate the data.}
-  \item{\code{dt, dt.sim}}{The actual and internal interobservation times.}
-  \item{\code{nbad}}{The total number of bad draws.}
+\item{\code{data}}{An array of size \verb{nobs x ndims x nreps} containing the simulated SDE trajectories.}
+\item{\code{params}}{The vector or matrix of parameter values used to generate the data.}
+\item{\verb{dt, dt.sim}}{The actual and internal interobservation times.}
+\item{\code{nbad}}{The total number of bad draws.}
 }
 }
 \description{

@@ -7,4 +7,10 @@
   assign(".msde_tools_path",
          file.path(libname, pkgname, "include", "R"),
          envir = parent.env(environment()))
+  # Pre-compiled sde models
+  loadModule("class_msde_hestModel", TRUE)
+  loadModule("class_msde_lotvolModel", TRUE)
+  loadModule("class_msde_biouModel", TRUE)
+  loadModule("class_msde_pgnetModel", TRUE)
+  loadModule("class_msde_eouModel", TRUE)
 }
